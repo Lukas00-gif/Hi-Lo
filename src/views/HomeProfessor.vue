@@ -3,11 +3,11 @@
         <nav class="navbar">
             <h3>Codinome HI-LO</h3>
             <ul>
-                <li><a href="/home">Home</a></li>
+                <li><a href="/home-professor">Home</a></li>
                 <li><a href="#">Perfil</a></li>
                 <li><a href="/">Sair</a></li>
             </ul>
-            <span>{{ nomeUsuario }}</span>
+            <span>Bem-vindo(a) Professor {{ currentUser.fistName }} {{ currentUser.lastName }}</span>
         </nav>
 
         <h1>Area do Professor</h1>
@@ -19,13 +19,25 @@
 </template>
 
 <script>
+
 export default {
     name: 'NavBar',
-    data() {
-        return {
-            nomeUsuario: "Bem-vindo Professor",
-        };
-    },
+
+    computed: {
+        currentUser() {
+            // criar o users de acordo com o parse do armazenado no localstorage chamado 'users'
+            // se n tiver ele inicia vazio
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            // cria uma variavel que pega o parse do armazenamento no localstorage chamado 'currentUserEmail'
+            // se n tiveer ele incia sozinho
+            const currentUserEmail = JSON.parse(localStorage.getItem('currentUserEmail')) || '';
+            // cria uma variavel que vai buscar no o array users(local storage) onde o user.mail do 
+            // cadastro e igual ao email que foi fornecido
+            const currentUser = users.find(user => user.mail === currentUserEmail);
+            // caso nao enconte nada retorna o objeto vazio
+            return currentUser || {};
+        }
+    }
 };
 </script>
 

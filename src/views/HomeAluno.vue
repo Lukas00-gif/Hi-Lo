@@ -3,15 +3,16 @@
         <nav class="navbar">
             <h3>Codinome HI-LO</h3>
             <ul>
-                <li><a href="/home">Home</a></li>
+                <li><a href="/home-professor">Home</a></li>
                 <li><a href="#">Perfil</a></li>
-                <li><a href="/">Sair</a></li>
+                <!-- <li><a href="/">Sair</a></li> -->
+                <Logout/>
             </ul>
-            <span>{{ nomeUsuario }}</span>
+            <span>Bem-vindo(a) {{ currentUser.fistName }} {{ currentUser.lastName }} </span>
         </nav>
 
         <h1>Area do Aluno</h1>
-        
+
         <footer>
             <p>&copy; 2023 | HI-LO</p>
         </footer>
@@ -19,13 +20,30 @@
 </template>
 
 <script>
+import Logout from '../components/Logout.vue'
+
 export default {
+
     name: 'NavBar',
-    data() {
-        return {
-            nomeUsuario: "Jose Antonio Lucius",
-        };
-    },
+
+    components: { Logout },
+
+    computed: {
+        currentUser() {
+            // criar o users de acordo com o parse do armazenado no localstorage chamado 'users'
+            // se n tiver ele inicia vazio
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            // cria uma variavel que pega o parse do armazenamento no localstorage chamado 'currentUserEmail'
+            // se n tiveer ele incia sozinho
+            const currentUserEmail = JSON.parse(localStorage.getItem('currentUserEmail')) || '';
+            // cria uma variavel que vai buscar no o array users(local storage) onde o user.mail do 
+            // cadastro e igual ao email que foi fornecido
+            const currentUser = users.find(user => user.mail === currentUserEmail);
+            // caso nao enconte nada retorna o objeto vazio
+            return currentUser || {};
+        }
+    }
+
 };
 </script>
 

@@ -25,7 +25,7 @@
 
           <div class="form-group">
             <button class="btnSubmit">Login</button>
-
+            
             <router-link to="/cadastro">
               <input type="submit" class="btnCadastro" value="Cadastro" />
             </router-link>
@@ -40,26 +40,14 @@
 <script>
 import useValidate from '@vuelidate/core'
 import { required, email, minLength } from '@vuelidate/validators'
-
-//login provisorio
-const userAluno = {
-  mail: 'aluno@gmail.com',
-  password: '1234567',
-  tipo: 'aluno'
-}
-
-const userProfessor = {
-  mail: 'admin@gmail.com',
-  password: '1234567',
-  tipo: 'professor'
-}
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 export default {
   name: 'Home',
 
 
   data() {
-    return {
+    return { 
       v$: useValidate(),
       mail: '',
       password: '',
@@ -80,40 +68,65 @@ export default {
     }
   },
 
+  computed: {
+    // e o tipo de usuario
+    // pega e divido o email em duas partes separando com o @
+    // e pegando o primeiro indice, e dps a funçao includes verifica se tem 
+    // a palavra professor se tiver ele retorna professor se n retorna aluno
+    userType() {
+      const domain = this.mail.split('@')[1];
+      return domain.includes('professor') ? 'professor' : 'aluno';
+    }
+  },
+
   methods: {
+    clean () {
+      localStorage.removeItem('currentUserEmail')
+    },
+
     enviar() {
-      // se o form n estiver invalido e as credenciais estiverem iguais ele 
-      //envia e vai para a tela de home
-      // if (!this.v$.$invalid && this.mail === user.mail && this.password === user.password) {
-      //   alert('ENVIOU')
-      //   if (user.tipo === 'aluno') {
-      //     this.$router.push('/home-aluno')
-      //   } else if (user.tipo === 'professor') {
-      //     this.$router.push('/home-professor')
-      //   }
-      // } else {
-      //   this.v$.$touch()
-      //   alert('NAO DEU CERTO')
-      //   this.LoginError = true
-      // }
+      // testegrande@gmail.com  123456
+      // antonio@professor.com 123456
+      // roberto12@gmail.com 123456
+
+      // original atualmente
       if (!this.v$.$invalid) {
-        if (this.mail === userAluno.mail && this.password === userAluno.password && userAluno.tipo === 'aluno') {
-          alert('Bem-vindo aluno!')
-          this.$router.push('/home-aluno')
-        } else if (this.mail === userProfessor.mail && this.password === userProfessor.password && userProfessor.tipo === 'professor') {
-          alert('Bem-vindo professor!')
-          this.$router.push('/home-professor')
-        } else {
-          alert('Credenciais inválidas!')
-          this.LoginError = true
-        }
+        signInWithEmailAndPassword(getAuth(), this.mail, this.password)
+          .then(() => {
+            // Recupera os usuários já armazenados no localStorage
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+
+            // Verifica se o email e senha correspondem a um usuário cadastrado
+            const currentUser = users.find(user => user.mail === this.mail && user.pass === this.password);
+            
+
+            if (currentUser) {
+              // Armazena o email do usuário atual no localStorage
+              localStorage.setItem('currentUserEmail', JSON.stringify(currentUser.mail));
+
+              // Redireciona o usuário para a página de perfil
+              if (this.userType === 'aluno') {
+                alert('Bem-vindo aluno!');
+                this.$router.push('/home-aluno');
+              } else {
+                alert('Bem-vindo professor!');
+                this.$router.push('/home-professor');
+              }
+            } else {
+              alert('Email ou senha inválidos');
+              this.LoginError = true;
+            }
+          })
+          .catch((error) => {
+            alert('Credenciais inválidas!');
+            this.LoginError = true;
+          });
       } else {
-        this.v$.$touch()
-        alert('Campos inválidos!')
-        this.LoginError = true
+        this.v$.$touch();
+        alert('Campos inválidos!');
+        this.LoginError = true;
       }
     }
-    
   }
 
 

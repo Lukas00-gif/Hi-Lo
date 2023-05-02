@@ -9,27 +9,14 @@
 
           <div class="form-group">
             <label class="labelNome" for="fist">Primeiro Nome:</label>
-            <input type="text" 
-              class="form-control mb-3" 
-              placeholder="Digite seu Primeiro Nome" 
-              v-model.trim="fistName"
-              :class="{ error0: v$.fistName.$error }" 
-            />
-              <div v-if="v$.fistName.$error" class="error-message">O Primeiro Nome deve ser Preenchido</div>
-              <div v-if="v$.fistName.$error" class="error-message">O Primeiro Nome deve ter no Minimo 4 Letras</div>
-              
-            <!-- <div class="error0" v-for="(error, i) of v$.fistName.$errors" :key="i">
-              <div class="error-message">{{ error.$message }}</div>
-              <div class="error-message">{{ error.fistName.$message }}</div>
-            </div> -->
+            <input type="text" class="form-control mb-3" placeholder="Digite seu Primeiro Nome" v-model.trim="fistName"
+              :class="{ error0: v$.fistName.$error }" />
+            <div v-if="v$.fistName.$error" class="error-message">O Primeiro Nome deve ser Preenchido</div>
+            <div v-if="v$.fistName.$error" class="error-message">O Primeiro Nome deve ter no Minimo 4 Letras</div>
 
             <label class="labelLast" for="last">Último Nome:</label>
-            <input type="text" 
-              class="form-control mb-3" 
-              placeholder="Digite seu Último Nome" 
-              v-model="lastName"
-              :class="{ error0: v$.lastName.$error }" 
-            />
+            <input type="text" class="form-control mb-3" placeholder="Digite seu Último Nome" v-model="lastName"
+              :class="{ error0: v$.lastName.$error }" />
             <div v-if="v$.lastName.$error" class="error-message">O Segundo Nome Ser Preenchido</div>
             <div v-if="v$.lastName.$error" class="error-message">O Segundo Nome deve ter no Minimo 4 Letras</div>
           </div>
@@ -38,12 +25,8 @@
 
           <div class="form-group">
             <label class="labelEmail" for="Email">Email:</label>
-            <input type="text" 
-              class="form-control mb-3" 
-              placeholder="Digite o Seu Email" 
-              v-model="mail"
-              :class="{ error0: v$.mail.$error }" 
-            />
+            <input type="text" class="form-control mb-3" placeholder="Digite o Seu Email" v-model="mail"
+              :class="{ error0: v$.mail.$error }" />
             <div v-if="v$.mail.$error" class="error-message">O Email deve ser Preenchido</div>
             <div v-if="v$.mail.$error" class="error-message">Email Invalido</div>
           </div>
@@ -53,22 +36,14 @@
           <div class="form-group">
             <label class="labelPassword" for="password">Senha:</label>
 
-            <input type="password" 
-              class="form-control mb-3" 
-              placeholder="Digite a Sua Senha" 
-              v-model="pass"
-              :class="{ error0: v$.pass.$error }" 
-            />
+            <input type="password" class="form-control mb-3" placeholder="Digite a Sua Senha" v-model="pass"
+              :class="{ error0: v$.pass.$error }" />
             <div v-if="v$.pass.$error" class="error-message">A Senha deve ser Preenchida</div>
             <div v-if="v$.pass.$error" class="error-message">A Senha deve ter no Minimo 6 Caracteres</div>
 
             <label class="labelConfirm" for="confirm">Confirme a sua Senha:</label>
-            <input type="password" 
-              class="form-control" 
-              placeholder="Confirme a sua Senha" 
-              v-model="confirmPass"
-              :class="{ error0: v$.confirmPass.$error }" 
-            />
+            <input type="password" class="form-control" placeholder="Confirme a sua Senha" v-model="confirmPass"
+              :class="{ error0: v$.confirmPass.$error }" />
             <div v-if="v$.confirmPass.$error" class="error-message">A Confirmação da Senha deve ser Preenchida</div>
             <div v-if="v$.confirmPass.$error" class="error-message">As Senhas não Coincidem</div>
           </div>
@@ -89,6 +64,9 @@
 
 <script>
 import useVuelidate from '@vuelidate/core';
+import router from '@/router';
+
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { required, email, minLength, sameAs } from '@vuelidate/validators';
 
 export default {
@@ -138,20 +116,51 @@ export default {
   // tem q verificar e dps enviar o formulario
   methods: {
     cadastrar() {
-      console.log(this.v$.$invalid)
-      
+      // console.log(this.v$.$invalid) 
       if (!this.v$.$invalid) {
-        alert('(DEU CERTO) - Cadastrado com Sucesso')
-        this.$router.push('/')
+        createUserWithEmailAndPassword(getAuth(), this.mail, this.pass)
+          .then((data) => {
+            alert('REGISTRADO COM SUCESSO')
+            //
+            const user = {
+              fistName: this.fistName,
+              lastName: this.lastName,
+              mail: this.mail,
+              pass: this.pass
+            }
+
+            // Recupera os usuários já armazenados no localStorage
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+
+            // Adiciona o novo usuário ao final do array
+            users.push(user);
+
+            // Armazena o array atualizado no localStorage
+            localStorage.setItem('users', JSON.stringify(users));
+
+            this.$store.commit('setUser', user);
+            router.push('/');
+          })
+          .catch((error) => {
+            console.log(error.code)
+            alert(error.message)
+          })
       } else {
-        // mostra os erros    
         this.v$.$touch()
         alert('NAO DEU CERTO BOY')
       }
+    },
+  },
+
+  created() {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user) {
+      this.$store.dispatch('setUser', user)
     }
   }
 
 }
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
