@@ -25,7 +25,7 @@
 
           <div class="form-group">
             <button class="btnSubmit">Login</button>
-            
+
             <router-link to="/cadastro">
               <input type="submit" class="btnCadastro" value="Cadastro" />
             </router-link>
@@ -47,7 +47,7 @@ export default {
 
 
   data() {
-    return { 
+    return {
       v$: useValidate(),
       mail: '',
       password: '',
@@ -80,9 +80,9 @@ export default {
   },
 
   methods: {
-    clean () {
-      localStorage.removeItem('currentUserEmail')
-    },
+    // clean() {
+    //   localStorage.removeItem('currentUserEmail')
+    // },
 
     enviar() {
       // testegrande@gmail.com  123456
@@ -98,7 +98,6 @@ export default {
 
             // Verifica se o email e senha correspondem a um usuário cadastrado
             const currentUser = users.find(user => user.mail === this.mail && user.pass === this.password);
-            
 
             if (currentUser) {
               // Armazena o email do usuário atual no localStorage

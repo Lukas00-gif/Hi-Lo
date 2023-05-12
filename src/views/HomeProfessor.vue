@@ -5,12 +5,14 @@
             <ul>
                 <li><a href="/home-professor">Home</a></li>
                 <li><a href="#">Perfil</a></li>
-                <li><a href="/">Sair</a></li>
+                <li><a @click="abrirModal">Criar Sala</a></li>
+                <Logout/>
             </ul>
             <span>Bem-vindo(a) Professor {{ currentUser.fistName }} {{ currentUser.lastName }}</span>
         </nav>
 
         <h1>Area do Professor</h1>
+        <modal-criar-sala v-if="mostrarModal" @fechar="fecharModal"></modal-criar-sala>
 
         <footer>
             <p>&copy; 2023 | HI-LO</p>
@@ -19,9 +21,27 @@
 </template>
 
 <script>
+import Logout from '@/components/Logout.vue';
+import ModalCriarSala from '../components/ModalCriarSala.vue'
 
 export default {
     name: 'NavBar',
+    components: { ModalCriarSala, Logout },
+
+    data() {
+        return {
+            mostrarModal: false
+        }
+    },
+
+    methods: {
+        abrirModal() {
+            this.mostrarModal = true
+        },
+        fecharModal() {
+            this.mostrarModal = false
+        }
+    },
 
     computed: {
         currentUser() {
@@ -75,6 +95,7 @@ h3 {
 .navbar a {
     color: #fff;
     text-decoration: none;
+    cursor: pointer;
 }
 
 span {
