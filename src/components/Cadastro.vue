@@ -12,23 +12,23 @@
             <input type="text" class="form-control mb-3" placeholder="Digite seu Primeiro Nome" v-model.trim="fistName"
               :class="{ error0: v$.fistName.$error }" />
             <div v-if="v$.fistName.$error" class="error-message">O Primeiro Nome deve ser Preenchido</div>
-            <div v-if="v$.fistName.$error" class="error-message">O Primeiro Nome deve ter no Minimo 4 Letras</div>
+            <div v-if="v$.fistName.$error" class="error-message">O Primeiro Nome deve ter no Mínimo 4 Letras</div>
 
             <label class="labelLast" for="last">Último Nome:</label>
             <input type="text" class="form-control mb-3" placeholder="Digite seu Último Nome" v-model="lastName"
               :class="{ error0: v$.lastName.$error }" />
             <div v-if="v$.lastName.$error" class="error-message">O Segundo Nome Ser Preenchido</div>
-            <div v-if="v$.lastName.$error" class="error-message">O Segundo Nome deve ter no Minimo 4 Letras</div>
+            <div v-if="v$.lastName.$error" class="error-message">O Segundo Nome deve ter no Mínimo 4 Letras</div>
           </div>
 
           <!-- email -->
 
           <div class="form-group">
-            <label class="labelEmail" for="Email">Email:</label>
-            <input type="text" class="form-control mb-3" placeholder="Digite o Seu Email" v-model="mail"
+            <label class="labelEmail" for="Email">E-mail:</label>
+            <input type="text" class="form-control mb-3" placeholder="Digite o Seu E-mail" v-model="mail"
               :class="{ error0: v$.mail.$error }" />
-            <div v-if="v$.mail.$error" class="error-message">O Email deve ser Preenchido</div>
-            <div v-if="v$.mail.$error" class="error-message">Email Invalido</div>
+            <div v-if="v$.mail.$error" class="error-message">O E-mail deve ser Preenchido</div>
+            <div v-if="v$.mail.$error" class="error-message">E-mail Invalido</div>
           </div>
 
           <!-- senha e confirmar senha -->
@@ -39,7 +39,7 @@
             <input type="password" class="form-control mb-3" placeholder="Digite a Sua Senha" v-model="pass"
               :class="{ error0: v$.pass.$error }" />
             <div v-if="v$.pass.$error" class="error-message">A Senha deve ser Preenchida</div>
-            <div v-if="v$.pass.$error" class="error-message">A Senha deve ter no Minimo 6 Caracteres</div>
+            <div v-if="v$.pass.$error" class="error-message">A Senha deve ter no Mínimo 6 Caracteres</div>
 
             <label class="labelConfirm" for="confirm">Confirme a sua Senha:</label>
             <input type="password" class="form-control" placeholder="Confirme a sua Senha" v-model="confirmPass"
@@ -49,7 +49,7 @@
           </div>
 
           <div class="form-group">
-            <router-link :to="{ name: 'login' }" class="LoginTag">Ja tem Conta? Clique Aqui</router-link>
+            <router-link :to="{ name: 'login' }" class="LoginTag">Já tem Conta? Clique Aqui</router-link>
           </div>
 
           <div class="form-group">
@@ -68,6 +68,9 @@ import router from '@/router';
 
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { required, email, minLength, sameAs } from '@vuelidate/validators';
+import { useToast } from 'vue-toastification'
+
+const toast = useToast()
 
 export default {
   name: 'Home',
@@ -120,7 +123,21 @@ export default {
       if (!this.v$.$invalid) {
         createUserWithEmailAndPassword(getAuth(), this.mail, this.pass)
           .then((data) => {
-            alert('REGISTRADO COM SUCESSO')
+            // alert('REGISTRADO COM SUCESSO')
+            toast.success("Cadastro Realizado com Sucesso!", {
+              position: "top-right",
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.85,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: false,
+              icon: true,
+              rtl: false
+            });
             //
             const user = {
               fistName: this.fistName,
@@ -147,7 +164,21 @@ export default {
           })
       } else {
         this.v$.$touch()
-        alert('NAO DEU CERTO BOY')
+        // alert('NAO DEU CERTO BOY')
+        toast.warning("Preencha Todos os Campos!!!", {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.85,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: false,
+          icon: true,
+          rtl: false
+        });
       }
     },
   },

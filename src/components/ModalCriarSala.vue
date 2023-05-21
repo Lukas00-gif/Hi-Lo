@@ -5,17 +5,17 @@
             <h2 class="title">Criar Sala de Aula</h2>
             <form>
                 <div class="form-group">
-                    <label for="materia">Nome da matéria:</label>
+                    <label for="materia">Nome da Matéria:</label>
                     <input type="text" id="materia" v-model.trim="v$.nomeMateria.$model"
                         :class="{ errorMessage: v$.nomeMateria.$error }" />
                 </div>
                 <div class="form-group">
-                    <label for="curso">Nome do curso:</label>
+                    <label for="curso">Nome do Curso:</label>
                     <input type="text" id="curso" v-model.trim="v$.nomeCurso.$model"
                         :class="{ errorMessage: v$.nomeCurso.$error }" />
                 </div>
                 <div class="form-group">
-                    <label for="professor">Nome do professor:</label>
+                    <label for="professor">Nome do Professor:</label>
                     <input type="text" id="professor" v-model.trim="v$.nomeProfessor.$model"
                         :class="{ errorMessage: v$.nomeProfessor.$error }" />
                 </div>
@@ -34,6 +34,10 @@
 <script>
 import useValidate from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
+import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
+import { useToast } from 'vue-toastification'
+
+const toast = useToast()
 
 //gera o codigo aleatorio da sala
 function gerarCodigoAleatorio() {
@@ -75,27 +79,75 @@ export default {
     },
 
     methods: {
-        criarSala() {
+        async criarSala() {
+
             if (!this.v$.$invalid) {
-                alert('CRIOU A SALA BOY')
-                const codigo = gerarCodigoAleatorio()
+                const codigo = gerarCodigoAleatorio();
+                // console.log(this.nomeMateria, this.nomeCurso, this.nomeProfessor, codigo);
 
-                // Aqui você pode enviar os dados do formulário para o servidor para criar a sala
-                console.log(this.nomeMateria, this.nomeCurso, this.nomeProfessor, codigo);
+                try {
+                    const db = getFirestore();
+                    //aqui cria a sala e e feita atravez do nome 'salas' que e o nome da coleçao no firebase
+                    // e e passado como codigo da sala a variavel que eu criei que e o codigo
+                    const salaRef = doc(collection(db, 'salas'), codigo);
 
-                // Depois de criar a sala, emita um evento para fechar o modal
-                // this.$emit("fechar");
-                this.$router.push('/home-professor')
+                    // depois os dados que eu forneci sao armazenados nesse obj sala
+                    const sala = {
+                        nomeMateria: this.nomeMateria,
+                        nomeCurso: this.nomeCurso,
+                        nomeProfessor: this.nomeProfessor,
+                        codigo: codigo
+                    };
+
+                    // cria o documento no caso o nome da sala no firebase
+                    // e salva a sala no firestore
+                    await setDoc(salaRef, sala);
+
+                    // evento fecha 
+                    this.$emit('fechar');
+
+                    // e a sala nova e add no array de salas onde vai ser renderizada
+                    this.$parent.salas.push(sala);
+                    this.$router.push('/home-professor');
+
+                    toast.success("SALA CRIADA COM SUCESSO!", {
+                        position: "bottom-right",
+                        timeout: 5000,
+                        closeOnClick: true,
+                        pauseOnFocusLoss: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        draggablePercent: 0.85,
+                        showCloseButtonOnHover: true,
+                        hideProgressBar: true,
+                        closeButton: false,
+                        icon: true,
+                        rtl: false
+                    });
+
+                    // e se houver algum erro ele captura e amostra qual e o erro
+                } catch (error) {
+                    console.error('Erro ao criar sala:', error);
+                }
             } else {
-                this.v$.$touch()
-                this.LoginErrorMessage = true
-                alert('NAO DEU CERTO BOY ')
+                this.v$.$touch();
+                this.LoginErrorMessage = true;
+                toast.error("Ocorreu um erro ao criar a sala", {
+                    position: "bottom-right",
+                    timeout: 5000,
+                    closeOnClick: true,
+                    pauseOnFocusLoss: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    draggablePercent: 0.85,
+                    showCloseButtonOnHover: true,
+                    hideProgressBar: true,
+                    closeButton: false,
+                    icon: true,
+                    rtl: false
+                });
             }
-
-            // Depois de criar a sala, emita um evento para fechar o modal
-            // this.$emit("fechar");
         },
-
         cancelarSala() {
             this.$emit("fechar")
         }

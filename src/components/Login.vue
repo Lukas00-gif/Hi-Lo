@@ -41,6 +41,9 @@
 import useValidate from '@vuelidate/core'
 import { required, email, minLength } from '@vuelidate/validators'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { useToast } from 'vue-toastification';
+
+const toast = useToast()
 
 export default {
   name: 'Home',
@@ -105,10 +108,38 @@ export default {
 
               // Redireciona o usuário para a página de perfil
               if (this.userType === 'aluno') {
-                alert('Bem-vindo aluno!');
+                // alert('Bem-vindo aluno!');
+                toast.info("Bem-vindo Aluno!!!", {
+                  position: "bottom-right",
+                  timeout: 5000,
+                  closeOnClick: true,
+                  pauseOnFocusLoss: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  draggablePercent: 0.85,
+                  showCloseButtonOnHover: false,
+                  hideProgressBar: true,
+                  closeButton: false,
+                  icon: true,
+                  rtl: false
+                });
                 this.$router.push('/home-aluno');
               } else {
-                alert('Bem-vindo professor!');
+                // alert('Bem-vindo professor!');
+                toast.info("Bem-vindo Professor!!!", {
+                  position: "bottom-right",
+                  timeout: 5000,
+                  closeOnClick: true,
+                  pauseOnFocusLoss: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  draggablePercent: 0.85,
+                  showCloseButtonOnHover: false,
+                  hideProgressBar: true,
+                  closeButton: false,
+                  icon: true,
+                  rtl: false
+                });
                 this.$router.push('/home-professor');
               }
             } else {
@@ -117,12 +148,40 @@ export default {
             }
           })
           .catch((error) => {
-            alert('Credenciais inválidas!');
+            // alert('Credenciais inválidas!');
+            toast.error("Credenciais invalidas", {
+              position: "top-right",
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.85,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: false,
+              icon: true,
+              rtl: false
+            });
             this.LoginError = true;
           });
       } else {
         this.v$.$touch();
-        alert('Campos inválidos!');
+        // alert('Campos inválidos!');
+        toast.error("Campos Invalidos!!!", {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.85,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: false,
+          icon: true,
+          rtl: false
+        });
         this.LoginError = true;
       }
     }
