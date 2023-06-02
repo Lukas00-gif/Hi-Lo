@@ -13,7 +13,16 @@
             <span>Bem-vindo(a) Professor {{ currentUser.fistName }} {{ currentUser.lastName }}</span>
         </nav>
 
+        <!-- chama o modal para criar a sala -->
         <modal-criar-sala v-if="mostrarModal" @fechar="fecharModal"></modal-criar-sala>
+
+        <!-- chama o modal do editar as informaçoes da sala -->
+        <modal-editar-sala v-if="mostrarModalEditarSala" :sala="salaSelecionada" @sala-editada="salaEditada"
+            @fechar="fecharModalEditarSala"></modal-editar-sala>
+
+        <!-- chama o modal do excluir a sala -->
+        <ModalExcluirSala v-if="modalExcluirVisivel" :sala="salaExcluida" @sala-excluida="excluirSala"
+            @fechar="fecharModalExcluir"></ModalExcluirSala>
 
         <div class="container">
             <div class="card-deck" v-if="salasCarregadas">
@@ -25,9 +34,16 @@
                             <p class="card-text">Professor: {{ sala.nomeProfessor }}</p>
                             <p class="card-text">Curso: {{ sala.nomeCurso }}</p>
                             <div class="button-group">
-                                <button class="btn-editar">Editar Sala</button>
+
+                                <button class="btn-editar" @click="editarSala(sala)">
+                                    Editar Sala
+                                </button>
+
                                 <button class="btn-entrar">Entrar na sala</button>
-                                <button class="btn-deletar">Deletar </button>
+
+                                <button class="btn-deletar" @click="abrirModalExcluir(sala)">
+                                    Deletar
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -46,18 +62,36 @@
 
 <script>
 import ModalCriarSala from '../components/ModalCriarSala.vue'
+import ModalEditarSala from '../components/ModalEditarSala.vue'
+import ModalExcluirSala from '../components/ModalExcluirSala.vue'
 import Logout from '@/components/Logout.vue';
 
 import { onMounted, reactive } from 'vue';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    deleteDoc,
+    updateDoc,
+    doc
+} from 'firebase/firestore';
 
 export default {
     name: 'HomeProfessor',
-    components: { Logout, ModalCriarSala },
+    components: {
+        Logout,
+        ModalCriarSala,
+        ModalEditarSala,
+        ModalExcluirSala
+    },
 
     data() {
         return {
-            mostrarModal: false
+            mostrarModal: false,
+            mostrarModalEditarSala: false,
+            salaSelecionada: null,
+            modalExcluirVisivel: false,
+            salaExcluida: null,
         }
     },
 
@@ -65,10 +99,76 @@ export default {
         abrirModal() {
             this.mostrarModal = true
         },
-
         fecharModal() {
             this.mostrarModal = false
-        }
+        },
+
+        // os metodos do Modal excluir
+        abrirModalExcluir(sala) {
+            this.salaExcluida = sala;
+            this.modalExcluirVisivel = true;
+        },
+        excluirSala(salaExcluida) {
+            // Aqui você pode remover a sala excluída do Firebase
+            // e também do array de salas localmente
+            const db = getFirestore();
+
+            try {
+                const docRef = doc(db, 'salas', salaExcluida.codigo);
+                deleteDoc(docRef);
+
+                const index = this.salas.findIndex(sala => sala.codigo === salaExcluida.codigo);
+                if (index !== -1) {
+                    this.salas.splice(index, 1);
+                }
+
+                // Emitir evento para informar que a sala foi excluída
+                this.$emit('sala-excluida', salaExcluida);
+            } catch (error) {
+                console.error('Erro ao excluir a sala:', error);
+                alert('Erro ao excluir a sala. Por favor, tente novamente.');
+            }
+
+            this.fecharModalExcluir();
+        },
+        fecharModalExcluir() {
+            this.modalExcluirVisivel = false;
+            this.salaExcluida = null;
+        },
+
+        // os metodos do modal editar
+        editarSala(sala) {
+            this.salaSelecionada = sala;
+            this.mostrarModalEditarSala = true;
+        },
+        async salaEditada(salaEditada) {
+            // Aqui você pode implementar a lógica para salvar a sala editada no banco de dados (usando o Firebase)
+            // Exemplo: this.state.salas[index] = salaEditada;
+            const db = getFirestore()
+            try {
+                // cria uma referencia do codigo
+                // e literalmente isso la no documento busque por salas e pegue o codigo
+                const docRef = doc(db, 'salas', salaEditada.codigo);
+
+                //Atualiza os dados do documento referenciado pelo docRef com os dados do 
+                //objeto salaEditada. 
+                await updateDoc(docRef, salaEditada);
+
+                // obtem o indice da sala dentro do array salas e deve possuir o mesmo codigo
+                const index = this.salas.findIndex(sala => sala.codigo === salaEditada.codigo);
+                // verifica se o index encontrado e diferente de -1(sempre verdadeiro) se for a sala foi encontrada
+                if (index !== -1) {
+                    // se for verdadeiro o array de salas e substituido pelo salaEdita que e um objeto
+                    this.salas[index] = salaEditada;
+                }
+            } catch (error) {
+                console.error('Erro ao editar a sala:', error);
+                alert('Erro ao editar a sala. Por favor, tente novamente.');
+            }
+        },
+        fecharModalEditarSala() {
+            this.mostrarModalEditarSala = false;
+        },
     },
 
     //quando inicia o compomente

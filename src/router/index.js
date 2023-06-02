@@ -68,15 +68,16 @@ const routes = [
     component: HomeProfessor,
     beforeEnter: authGuard,
   },
+  {
+    // caso nao seja uma url valida, ele volta para a do login
+    path: '/:pathMatch(.*)*',
+    redirect: { name: 'login' },
+  }
 ]
-
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
 })
-
-
-
 
 export default router

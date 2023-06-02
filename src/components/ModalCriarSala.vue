@@ -9,17 +9,21 @@
                     <input type="text" id="materia" v-model.trim="v$.nomeMateria.$model"
                         :class="{ errorMessage: v$.nomeMateria.$error }" />
                 </div>
+
                 <div class="form-group">
                     <label for="curso">Nome do Curso:</label>
                     <input type="text" id="curso" v-model.trim="v$.nomeCurso.$model"
                         :class="{ errorMessage: v$.nomeCurso.$error }" />
                 </div>
+
                 <div class="form-group">
                     <label for="professor">Nome do Professor:</label>
                     <input type="text" id="professor" v-model.trim="v$.nomeProfessor.$model"
                         :class="{ errorMessage: v$.nomeProfessor.$error }" />
                 </div>
+
                 <div v-if="LoginErrorMessage" class="error-message">Por favor, preencha todos os campos</div>
+                    
                 <button class="btn-criar" type="submit" @click.prevent="criarSala">
                     Criar Sala
                 </button>
