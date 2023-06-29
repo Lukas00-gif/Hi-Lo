@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { getCurrentUserEmail } from '../services/authServices'
-import { useToast } from 'vue-toastification'
+import { createRouter, createWebHistory } from 'vue-router';
+import { useToast } from 'vue-toastification';
+import store from '../state/store';
 
 
 import Login from '../views/LoginView.vue'
@@ -9,36 +9,40 @@ import HomeAluno from '../views/HomeAluno.vue'
 import HomeProfessor from '../views/HomeProfessor.vue'
 import EsqueciSenha from '../components/EsquecerSenha.vue'
 
+const toast = useToast();
 
 const authGuard = (to, from, next) => {
-
-  const toast = useToast();
-  const currentUserEmail = getCurrentUserEmail();
+  const currentUserEmail = store.getters.currentUserEmail
+  console.log("current do AUTHGUARD; ", currentUserEmail)
 
   if (currentUserEmail) {
-    // usuário autenticado, permite o acesso à rota
+    // Usuário autenticado, permite o acesso à rota
+    console.log('dentro do AUTHGUARD')
     next();
-  } else {
-    // usuário não autenticado, redireciona para a página de login
+  } else { 
+    // Usuário não autenticado, redireciona para a página de login
     next('/');
-    // alert('nao deu certo boy faça o login')
-    
-    toast.info("FAÇA O LOGIN PRIMEIRO...", {
+    toast.info('FAÇA LOGIN PRIMEIRO...!!', {
       position: "top-right",
-      timeout: 5000,
-      closeOnClick: true,
-      pauseOnFocusLoss: true,
-      pauseOnHover: true,
-      draggable: true,
-      draggablePercent: 0.6,
-      showCloseButtonOnHover: false,
-      hideProgressBar: true,
-      closeButton: "button",
-      icon: true,
-      rtl: false
-    });
+      timeout: 2000,
+    })
   }
 }
+
+//     toast.info("FAÇA O LOGIN PRIMEIRO...", {
+//       position: "top-right",
+//       timeout: 5000,
+//       closeOnClick: true,
+//       pauseOnFocusLoss: true,
+//       pauseOnHover: true,
+//       draggable: true,
+//       draggablePercent: 0.6,
+//       showCloseButtonOnHover: false,
+//       hideProgressBar: true,
+//       closeButton: "button",
+//       icon: true,
+//       rtl: false
+//     });
 
 const routes = [
   {

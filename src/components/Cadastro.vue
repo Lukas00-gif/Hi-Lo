@@ -67,8 +67,9 @@ import useVuelidate from '@vuelidate/core';
 import router from '@/router';
 
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
 import { required, email, minLength, sameAs } from '@vuelidate/validators';
-import { useToast } from 'vue-toastification'
+import { useToast } from 'vue-toastification';
 
 const toast = useToast()
 
@@ -118,77 +119,46 @@ export default {
   // ver sobre o formulario nao esta dando certo
   // tem q verificar e dps enviar o formulario
   methods: {
-    cadastrar() {
-      // console.log(this.v$.$invalid) 
+    async cadastrar() {
       if (!this.v$.$invalid) {
-        createUserWithEmailAndPassword(getAuth(), this.mail, this.pass)
-          .then((data) => {
-            // alert('REGISTRADO COM SUCESSO')
-            toast.success("Cadastro Realizado com Sucesso!", {
-              position: "top-right",
-              timeout: 5000,
-              closeOnClick: true,
-              pauseOnFocusLoss: true,
-              pauseOnHover: true,
-              draggable: true,
-              draggablePercent: 0.85,
-              showCloseButtonOnHover: false,
-              hideProgressBar: true,
-              closeButton: false,
-              icon: true,
-              rtl: false
-            });
-            //
-            const user = {
-              fistName: this.fistName,
-              lastName: this.lastName,
-              mail: this.mail,
-              pass: this.pass
-            }
+        try {
+          const user = {
+            fistName: this.fistName,
+            lastName: this.lastName,
+            mail: this.mail,
+            pass: this.pass
+          };
 
-            // Recupera os usuários já armazenados no localStorage
-            let users = JSON.parse(localStorage.getItem('users')) || [];
+          const auth = getAuth();
+          const { user: authUser } = await createUserWithEmailAndPassword(auth, user.mail, user.pass);
+          // signInWithCredential
+          const db = getFirestore();
+          const usersCollection = collection(db, 'users');
+          const userDocRef = doc(usersCollection, authUser.uid);
+          await setDoc(userDocRef, {
+            fistName: user.fistName,
+            lastName: user.lastName,
+            email: user.mail,
+            pass: user.pass,
+            uid: authUser.uid
+          });
 
-            // Adiciona o novo usuário ao final do array
-            users.push(user);
+          toast.success('Cadastro Realizado com Sucesso!', {
+            position: 'top-right',
+            timeout: 3000,
+          });
 
-            // Armazena o array atualizado no localStorage
-            localStorage.setItem('users', JSON.stringify(users));
+          router.push('/');
 
-            this.$store.commit('setUser', user);
-            router.push('/');
-          })
-          .catch((error) => {
-            console.log(error.code)
-            alert(error.message)
-          })
-      } else {
-        this.v$.$touch()
-        // alert('NAO DEU CERTO BOY')
-        toast.warning("Preencha Todos os Campos!!!", {
-          position: "top-right",
-          timeout: 5000,
-          closeOnClick: true,
-          pauseOnFocusLoss: true,
-          pauseOnHover: true,
-          draggable: true,
-          draggablePercent: 0.85,
-          showCloseButtonOnHover: false,
-          hideProgressBar: true,
-          closeButton: false,
-          icon: true,
-          rtl: false
-        });
+
+        } catch (error) {
+          console.log(error);
+          toast.error('erro ao realizar o cadastro')
+        }
       }
-    },
+    }
   },
 
-  created() {
-    const user = JSON.parse(localStorage.getItem('user'))
-    if (user) {
-      this.$store.dispatch('setUser', user)
-    }
-  }
 
 }
 

@@ -4,13 +4,12 @@
             <h3>Codinome HI-LO</h3>
             <div class="centered-items">
                 <ul>
-                    <li><a href="/home-professor">Home</a></li>
                     <li><a href="#">Perfil</a></li>
                     <li><a @click="abrirModal">Criar Sala</a></li>
                     <Logout />
                 </ul>
             </div>
-            <span>Bem-vindo(a) Professor {{ currentUser.fistName }} {{ currentUser.lastName }}</span>
+            <span>Bem-vindo(a) Professor {{ professor.nome }} {{ professor.sobrenome }}</span>
         </nav>
 
         <!-- chama o modal para criar a sala -->
@@ -73,8 +72,11 @@ import {
     getDocs,
     deleteDoc,
     updateDoc,
-    doc
+    doc,
+    query,
+    where
 } from 'firebase/firestore';
+import store from '@/state/store';
 
 export default {
     name: 'HomeProfessor',
@@ -177,10 +179,15 @@ export default {
             // sera preenchido com as salas que estao no firestore
             salas: [],
             // indica se as salas foram carregadas ou nao
-            salasCarregadas: false
+            salasCarregadas: false,
+            professor: {
+                nome: '',
+                sobrenome: ''
+            }
         });
 
         const db = getFirestore();
+        const currentUserEmail = store.state.currentUserEmail;
 
         // é  usada  para excultar uma consulta  no firestore assim que o  compomente for
         // contado
@@ -194,6 +201,15 @@ export default {
                     state.salas.push(doc.data());
                 });
                 state.salasCarregadas = true;
+
+                const querySnapshot1 = await getDocs(query(collection(db, 'users'), where('email', '==', currentUserEmail)));
+                if (!querySnapshot1.empty) {
+                    const professorDoc = querySnapshot1.docs[0];
+                    state.professor.nome = professorDoc.data().fistName;
+                    state.professor.sobrenome = professorDoc.data().lastName;
+                }
+
+
                 // caso aconteça algum erro vai dar erro
             } catch (error) {
                 console.error('Erro ao recuperar salas:', error);
@@ -203,22 +219,7 @@ export default {
 
         return state;
     },
-
-    computed: {
-        currentUser() {
-            // criar o users de acordo com o parse do armazenado no localstorage chamado 'users'
-            // se n tiver ele inicia vazio
-            const users = JSON.parse(localStorage.getItem('users')) || [];
-            // cria uma variavel que pega o parse do armazenamento no localstorage chamado 'currentUserEmail'
-            // se n tiveer ele incia sozinho
-            const currentUserEmail = JSON.parse(localStorage.getItem('currentUserEmail')) || '';
-            // cria uma variavel que vai buscar no o array users(local storage) onde o user.mail do 
-            // cadastro e igual ao email que foi fornecido
-            const currentUser = users.find(user => user.mail === currentUserEmail);
-            // caso nao enconte nada retorna o objeto vazio
-            return currentUser || {};
-        }
-    }
+    
 };
 </script>
 <style scoped>

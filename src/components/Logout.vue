@@ -6,19 +6,32 @@
 </template>
 
 <script>
-    export default {
-        name: 'LogoutButton',
+import { getAuth, signOut } from 'firebase/auth';
+import { mapActions } from 'vuex';
 
-        methods: {
-            logout() {
-                // Limpa o email do usuário atual do localStorage
-                localStorage.removeItem('currentUserEmail');
+import store from '../state/store';
 
-                // Redireciona o usuário para a página de login
-                this.$router.push('/');
-            }
-        }
-    }
+
+export default {
+    name: 'LogoutButton',
+
+    methods: {
+        logout() {
+            const auth = getAuth();
+
+            signOut(auth)
+                .then(() => {
+                    store.commit('clearCurrentUserEmail');
+                    this.$router.push('/');
+                })
+                .catch((error) => {
+                    console.error('Erro durante o logout:', error);
+                    //erro
+                });
+        },
+    },
+}
+
 </script>
 
 <style scoped>

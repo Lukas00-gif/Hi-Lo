@@ -6,15 +6,15 @@
         <form @submit.prevent="enviar">
           <div class="form-group">
 
-            <label class="labels" for="login">Login:</label>
+            <label class="labels" for="login">Email:</label>
             <input type="text" class="form-control mb-3" id="username" placeholder="Digite o Seu Email"
-              v-model.trim="v$.mail.$model" :class="{ error0: v$.mail.$error }" />
+              v-model.trim="v$.mail.$model" :class="{ error0: v$.mail.$error }" name="email" />
           </div>
 
           <div class="form-group">
             <label class="labels" for="password">Senha:</label>
             <input type="password" class="form-control" id="password" placeholder="Digite a Sua Senha"
-              v-model.trim="v$.password.$model" :class="{ error0: v$.password.$error }" />
+              v-model.trim="v$.password.$model" :class="{ error0: v$.password.$error }" name="password" />
           </div>
 
           <div class="form-group">
@@ -39,16 +39,22 @@
 
 <script>
 import useValidate from '@vuelidate/core'
+import router from '@/router';
+
 import { required, email, minLength } from '@vuelidate/validators'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from 'vue-toastification';
+import { getFirestore } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import store from '../state/store';
 
-const toast = useToast()
+
+const toast = useToast();
 
 export default {
   name: 'Home',
 
-
+  
   data() {
     return {
       v$: useValidate(),
@@ -83,108 +89,63 @@ export default {
   },
 
   methods: {
-    // clean() {
-    //   localStorage.removeItem('currentUserEmail')
-    // },
-
-    enviar() {
+    async enviar() {
       // testegrande@gmail.com  123456
       // antonio@professor.com 123456
       // roberto12@gmail.com 123456
 
-      // original atualmente
       if (!this.v$.$invalid) {
-        signInWithEmailAndPassword(getAuth(), this.mail, this.password)
-          .then(() => {
-            // Recupera os usuários já armazenados no localStorage
-            const users = JSON.parse(localStorage.getItem('users')) || [];
 
-            // Verifica se o email e senha correspondem a um usuário cadastrado
-            const currentUser = users.find(user => user.mail === this.mail && user.pass === this.password);
+        const auth = getAuth();
+        const { mail, password } = this;
 
-            if (currentUser) {
-              // Armazena o email do usuário atual no localStorage
-              localStorage.setItem('currentUserEmail', JSON.stringify(currentUser.mail));
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, mail, password);
+          const user = userCredential.user;
 
-              // Redireciona o usuário para a página de perfil
-              if (this.userType === 'aluno') {
-                // alert('Bem-vindo aluno!');
-                toast.info("Bem-vindo Aluno!!!", {
-                  position: "bottom-right",
-                  timeout: 5000,
-                  closeOnClick: true,
-                  pauseOnFocusLoss: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  draggablePercent: 0.85,
-                  showCloseButtonOnHover: false,
-                  hideProgressBar: true,
-                  closeButton: false,
-                  icon: true,
-                  rtl: false
-                });
-                this.$router.push('/home-aluno');
-              } else {
-                // alert('Bem-vindo professor!');
-                toast.info("Bem-vindo Professor!!!", {
-                  position: "bottom-right",
-                  timeout: 5000,
-                  closeOnClick: true,
-                  pauseOnFocusLoss: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  draggablePercent: 0.85,
-                  showCloseButtonOnHover: false,
-                  hideProgressBar: true,
-                  closeButton: false,
-                  icon: true,
-                  rtl: false
-                });
-                this.$router.push('/home-professor');
-              }
+          store.commit('setCurrentUserEmail', user.email);
+
+          // Consulta para encontrar o usuário no Firestore com base no email
+          const db = getFirestore();
+          const usersCollection = collection(db, 'users');
+          const q = query(usersCollection, where('email', '==', mail));
+          const querySnapshot = await getDocs(q);
+          // store.dispatch('login', {email: user.email, password: user.password});
+
+          // Verifica se o documento do usuário existe e tem a senha correspondente
+          const userDoc = querySnapshot.docs[0];
+
+          if (userDoc && userDoc.data().pass === password) {
+            // Redireciona o usuário para a página de perfil
+            if (this.userType === 'aluno') {
+              toast.info('Bem-vindo Aluno!', {
+                position: "bottom-right",
+                timeout: 5000,
+              });
+              router.push('/home-aluno');
             } else {
-              alert('Email ou senha inválidos');
-              this.LoginError = true;
+              toast.info('Bem-vindo Professor!', {
+                position: "bottom-right",
+                timeout: 5000,
+              });
+              router.push('/home-professor');
             }
-          })
-          .catch((error) => {
-            // alert('Credenciais inválidas!');
-            toast.error("Credenciais invalidas", {
-              position: "top-right",
-              timeout: 5000,
-              closeOnClick: true,
-              pauseOnFocusLoss: true,
-              pauseOnHover: true,
-              draggable: true,
-              draggablePercent: 0.85,
-              showCloseButtonOnHover: false,
-              hideProgressBar: true,
-              closeButton: false,
-              icon: true,
-              rtl: false
-            });
+          } else {
+            toast.error('Email ou senha inválidos');
             this.LoginError = true;
-          });
+          }
+
+        } catch (error) {
+          console.log(error);
+          toast.error('Erro ao realizar o login');
+          this.LoginError = true;
+        }
       } else {
         this.v$.$touch();
-        // alert('Campos inválidos!');
-        toast.error("Campos Invalidos!!!", {
-          position: "top-right",
-          timeout: 5000,
-          closeOnClick: true,
-          pauseOnFocusLoss: true,
-          pauseOnHover: true,
-          draggable: true,
-          draggablePercent: 0.85,
-          showCloseButtonOnHover: false,
-          hideProgressBar: true,
-          closeButton: false,
-          icon: true,
-          rtl: false
-        });
+        toast.error('Campos inválidos!!!');
         this.LoginError = true;
       }
-    }
+    },
   }
 
 
