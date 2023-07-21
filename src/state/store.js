@@ -1,5 +1,5 @@
 import { createStore } from 'vuex';
-import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from 'firebase/auth';
 
 export default createStore({
     state: {
@@ -20,10 +20,14 @@ export default createStore({
         async login({ commit }, { mail, password }) {
             try {
                 const auth = getAuth();
+                await setPersistence(auth, browserSessionPersistence);
                 const userCredential = await signInWithEmailAndPassword(auth, mail, password);
                 const user = userCredential.user;
-               // console.log("email do store: ", user.email);
                 commit('setCurrentUserEmail', user.email);
+
+                // Armazena o estado do usuário logado no localStorage
+                localStorage.setItem('currentUserEmail', user.email);
+
             } catch (error) {
                 console.error('Erro durante o login:', error);
                 throw error;
@@ -34,6 +38,7 @@ export default createStore({
                 const auth = getAuth();
                 await signOut(auth);
                 commit('clearCurrentUserEmail');
+                
             } catch (error) {
                 console.error('Erro durante o logout:', error);
                 throw error;
@@ -44,3 +49,4 @@ export default createStore({
         currentUserEmail: state => state.currentUserEmail
     }
 });
+

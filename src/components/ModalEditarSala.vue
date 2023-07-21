@@ -6,23 +6,38 @@
             <form @submit.prevent="salvarEdicao">
                 <div class="form-group">
                     <label for="nomeMateria">Editar o Nome da Matéria:</label>
-                    <input type="text" v-model="salaEditada.nomeMateria" id="nomeMateria">
+                    <input type="text" v-model="salaEditada.nomeMateria" 
+                        id="nomeMateria" @input="updateChanges"
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="nomeProfessor">Editar o Nome do Professor:</label>
-                    <input type="text" v-model="salaEditada.nomeProfessor" id="nomeProfessor">
+                    <input type="text" v-model="salaEditada.nomeProfessor" 
+                        id="nomeProfessor" @input="updateChanges"
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="nomeCurso">Editar o Nome do Curso:</label>
-                    <input type="text" v-model="salaEditada.nomeCurso" id="nomeCurso">
+                    <input type="text" v-model="salaEditada.nomeCurso" 
+                        id="nomeCurso" @input="updateChanges"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="nomeCurso">Editar o Email do Professor</label>
+                    <input type="text" v-model="salaEditada.emailProfessorSala" 
+                        id="nomeCurso" @input="updateChanges"
+                    >
                 </div>
 
                 <div v-if="ErrorMessage" class="errorMessage">Todos os Campos não podem ser Brancos</div>
 
-                <button type="submit" class="btn-salvar">
-                    Salvar Alterações
+                <button type="submit" class="btn-salvar" :class="{ 'btn-disabled': !hasChanges, 'btn-salvar-hover': hasChanges }"
+                    :disabled="!hasChanges"
+                    >
+                        Salvar Alterações
                 </button>
                 <button class="btn-cancelar" @click="fecharModal">Cancelar</button>
             </form>
@@ -31,10 +46,12 @@
 </template>
 
 <script>
-import { doc, getFirestore, setDoc } from 'firebase/firestore'
-import { useToast } from 'vue-toastification'
-import { required } from '@vuelidate/validators'
-import useValidate from '@vuelidate/core'
+import { doc, getFirestore, setDoc } from 'firebase/firestore';
+import { useToast } from 'vue-toastification';
+import { required, email } from '@vuelidate/validators';
+import { isEqual } from 'lodash';
+
+import useValidate from '@vuelidate/core';
 
 
 export default {
@@ -43,7 +60,8 @@ export default {
         return {
             v$: useValidate(),
             salaEditada: { ...this.sala }, // Faz uma cópia da sala para edição
-            ErrorMessage: false
+            ErrorMessage: false,
+            hasChanges: false,
         };
     },
 
@@ -58,6 +76,10 @@ export default {
                 },
                 nomeCurso: {
                     required
+                },
+                emailProfessorSala: {
+                    required,
+                    email
                 }
             }
         }
@@ -81,17 +103,7 @@ export default {
 
                     toast.success("Alterações Feita com Sucesso!", {
                         position: "bottom-right",
-                        timeout: 5000,
-                        closeOnClick: true,
-                        pauseOnFocusLoss: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        draggablePercent: 0.6,
-                        showCloseButtonOnHover: false,
-                        hideProgressBar: true,
-                        closeButton: "button",
-                        icon: true,
-                        rtl: false
+                        timeout: 3000,
                     });
 
                     // emiti um evento chamado sala-editada para a view home-professor
@@ -106,27 +118,22 @@ export default {
                 this.ErrorMessage = true;
                 toast.error("Ocorreu um erro na Tentativa de Alteração", {
                     position: "bottom-right",
-                    timeout: 5000,
-                    closeOnClick: true,
-                    pauseOnFocusLoss: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    draggablePercent: 0.6,
-                    showCloseButtonOnHover: false,
-                    hideProgressBar: true,
-                    closeButton: "button",
-                    icon: true,
-                    rtl: false
+                    timeout: 3000,
                 });
             }
         },
+
         fecharModal() {
             this.$emit('fechar');
         },
+
+        updateChanges() {
+            this.hasChanges = !isEqual(this.sala, this.salaEditada);
+        }
     },
 };
 </script>
-  
+
 <style scoped>
 /* Estilos do modal */
 .modal {
@@ -207,7 +214,16 @@ input[type="text"] {
     margin-right: 20px;
 }
 
-.btn-salvar:hover {
+/* .btn-salvar:hover {
+    background-color: #035104;
+} */
+
+.btn-disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.btn-salvar-hover:hover {
     background-color: #035104;
 }
 

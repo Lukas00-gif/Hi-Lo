@@ -22,8 +22,15 @@
                         :class="{ errorMessage: v$.nomeProfessor.$error }" />
                 </div>
 
+                <div class="form-group">
+                    <label for="email">Email do Professor:</label>
+                    <input type="text" id="email" v-model.trim="v$.emailProfessor.$model"
+                        :class="{ errorMessage: v$.emailProfessor.$error }" />
+                </div>
+
+
                 <div v-if="LoginErrorMessage" class="error-message">Por favor, preencha todos os campos</div>
-                    
+
                 <button class="btn-criar" type="submit" @click.prevent="criarSala">
                     Criar Sala
                 </button>
@@ -37,8 +44,8 @@
 
 <script>
 import useValidate from '@vuelidate/core'
-import { required } from '@vuelidate/validators'
-import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
+import { required, email } from '@vuelidate/validators'
+import { getFirestore, collection, doc, setDoc, getDoc } from 'firebase/firestore';
 import { useToast } from 'vue-toastification'
 
 const toast = useToast()
@@ -63,6 +70,7 @@ export default {
             nomeMateria: '',
             nomeCurso: '',
             nomeProfessor: '',
+            emailProfessor: '',
             codigo: '',
             LoginErrorMessage: false
         };
@@ -78,6 +86,10 @@ export default {
             },
             nomeProfessor: {
                 required
+            },
+            emailProfessor: {
+                email,
+                required
             }
         }
     },
@@ -89,71 +101,63 @@ export default {
                 const codigo = gerarCodigoAleatorio();
                 // console.log(this.nomeMateria, this.nomeCurso, this.nomeProfessor, codigo);
 
-                try {
-                    const db = getFirestore();
-                    //aqui cria a sala e e feita atravez do nome 'salas' que e o nome da coleçao no firebase
-                    // e e passado como codigo da sala a variavel que eu criei que e o codigo
-                    const salaRef = doc(collection(db, 'salas'), codigo);
+                const db = getFirestore();
+                //aqui cria a sala e e feita atravez do nome 'salas' que e o nome da coleçao no firebase
+                // e e passado como codigo da sala a variavel que eu criei que e o codigo
+                const salaRef = doc(collection(db, 'salas'), codigo);
 
-                    // depois os dados que eu forneci sao armazenados nesse obj sala
-                    const sala = {
-                        nomeMateria: this.nomeMateria,
-                        nomeCurso: this.nomeCurso,
-                        nomeProfessor: this.nomeProfessor,
-                        codigo: codigo
-                    };
+                // depois os dados que eu forneci sao armazenados nesse obj sala
+                const sala = {
+                    nomeMateria: this.nomeMateria,
+                    nomeCurso: this.nomeCurso,
+                    nomeProfessor: this.nomeProfessor,
+                    emailProfessorSala: this.emailProfessor,
+                    codigo: codigo,
+                };
 
-                    // cria o documento no caso o nome da sala no firebase
-                    // e salva a sala no firestore
-                    await setDoc(salaRef, sala);
+                if (this.isProfessorValido()) {
+                    try {
+                        await setDoc(salaRef, sala);
 
-                    // evento fecha 
-                    this.$emit('fechar');
+                        // evento fecha 
+                        this.$emit('fechar');
 
-                    // e a sala nova e add no array de salas onde vai ser renderizada
-                    this.$parent.salas.push(sala);
-                    this.$router.push('/home-professor');
+                        // e a sala nova e add no array de salas onde vai ser renderizada
+                        this.$parent.salas.push(sala);
+                        this.$router.push('/home-professor');
+                        toast.success("SALA CRIADA COM SUCESSO!", {
+                            position: "bottom-right",
+                            timeout: 2000,
+                        });
 
-                    toast.success("SALA CRIADA COM SUCESSO!", {
+                    } catch (error) {
+                        console.error('Erro ao criar sala:', error);
+                        toast.error("Ocorreu um erro ao criar a sala", {
+                            position: "bottom-right",
+                            timeout: 3000,
+                        });
+                    }
+                    
+                } else {
+                    toast.error("Por favor, coloque o email do professor responsável", {
                         position: "bottom-right",
-                        timeout: 5000,
-                        closeOnClick: true,
-                        pauseOnFocusLoss: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        draggablePercent: 0.85,
-                        showCloseButtonOnHover: true,
-                        hideProgressBar: true,
-                        closeButton: false,
-                        icon: true,
-                        rtl: false
+                        timeout: 4000,
                     });
-
-                    // e se houver algum erro ele captura e amostra qual e o erro
-                } catch (error) {
-                    console.error('Erro ao criar sala:', error);
                 }
             } else {
                 this.v$.$touch();
                 this.LoginErrorMessage = true;
                 toast.error("Ocorreu um erro ao criar a sala", {
                     position: "bottom-right",
-                    timeout: 5000,
-                    closeOnClick: true,
-                    pauseOnFocusLoss: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    draggablePercent: 0.85,
-                    showCloseButtonOnHover: true,
-                    hideProgressBar: true,
-                    closeButton: false,
-                    icon: true,
-                    rtl: false
+                    timeout: 2000,
                 });
             }
         },
         cancelarSala() {
             this.$emit("fechar")
+        },
+        isProfessorValido() {
+            return this.emailProfessor.toLowerCase().includes('professor');
         }
     }
 };

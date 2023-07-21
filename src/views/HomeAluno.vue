@@ -4,12 +4,15 @@
             <h3>Codinome HI-LO</h3>
             <ul>
                 <li><a href="#">Perfil</a></li>
-                <Logout/>
+                <li><a @click="abrirModalAddAlunoSala">Adicionar Codigo</a></li>
+                <Logout />
             </ul>
             <span>Bem-vindo(a) {{ aluno.nome }} {{ aluno.sobrenome }} </span>
         </nav>
 
         <h1>Area do Aluno</h1>
+        <!-- add o aluno na sala de aula -->
+        <ModalAddAlunoSala v-if="mostrarModalAddAlunoSala" @fechar="fecharModalAddAlunoSala" />
 
         <footer>
             <p>&copy; 2023 | HI-LO</p>
@@ -18,6 +21,9 @@
 </template>
 
 <script>
+import ModalAddAlunoSala from '../components/ModalAddAlunoSala.vue';
+
+
 import { onMounted, reactive } from 'vue';
 import {
     getFirestore,
@@ -34,9 +40,15 @@ export default {
 
     name: 'NavBar',
 
-    components: { Logout },
+    components: { Logout, ModalAddAlunoSala },
 
-    setup(){
+    data() {
+        return {
+            mostrarModalAddAlunoSala: false,
+        }
+    },
+
+    setup() {
         const state = reactive({
             aluno: {
                 nome: '',
@@ -48,10 +60,10 @@ export default {
         const currentUserEmail = store.state.currentUserEmail;
 
         onMounted(async () => {
-            
-            const querySnapshot = await getDocs(query(collection(db,'users'), where('email', '==', currentUserEmail)));
-            
-            if(!querySnapshot.empty){
+
+            const querySnapshot = await getDocs(query(collection(db, 'users'), where('email', '==', currentUserEmail)));
+
+            if (!querySnapshot.empty) {
                 const alunoDoc = querySnapshot.docs[0];
                 state.aluno.nome = alunoDoc.data().fistName;
                 state.aluno.sobrenome = alunoDoc.data().lastName;
@@ -60,6 +72,16 @@ export default {
         })
 
         return state
+    },
+
+    methods: {
+        // modal do add aluno na sala de aula
+        abrirModalAddAlunoSala() {
+            this.mostrarModalAddAlunoSala = true;
+        },
+        fecharModalAddAlunoSala() {
+            this.mostrarModalAddAlunoSala = false;
+        },
     }
 
 };
@@ -99,6 +121,7 @@ h3 {
 .navbar a {
     color: #fff;
     text-decoration: none;
+    cursor: pointer;
 }
 
 span {

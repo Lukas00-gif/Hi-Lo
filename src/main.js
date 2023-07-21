@@ -1,4 +1,3 @@
-// original sem alteraçoes
 import { createApp } from 'vue'
 import { initializeApp } from 'firebase/app'
 
@@ -10,6 +9,11 @@ import firebaseConfig from './firebaseConfig'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'vue-toastification/dist/index.css'
+
+const currentUserEmail = localStorage.getItem('currentUserEmail');
+if (currentUserEmail) {
+    store.commit('setCurrentUserEmail', currentUserEmail);
+}
 
 
 const firebaseApp  = initializeApp(firebaseConfig);

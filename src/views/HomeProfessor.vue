@@ -60,9 +60,10 @@
 </template>
 
 <script>
-import ModalCriarSala from '../components/ModalCriarSala.vue'
-import ModalEditarSala from '../components/ModalEditarSala.vue'
-import ModalExcluirSala from '../components/ModalExcluirSala.vue'
+import ModalCriarSala from '../components/ModalCriarSala.vue';
+import ModalEditarSala from '../components/ModalEditarSala.vue';
+import ModalExcluirSala from '../components/ModalExcluirSala.vue';
+import ModalAddAlunoSala from '../components/ModalAddAlunoSala.vue';
 import Logout from '@/components/Logout.vue';
 
 import { onMounted, reactive } from 'vue';
@@ -84,15 +85,16 @@ export default {
         Logout,
         ModalCriarSala,
         ModalEditarSala,
-        ModalExcluirSala
+        ModalExcluirSala,
+        ModalAddAlunoSala
     },
 
     data() {
         return {
             mostrarModal: false,
             mostrarModalEditarSala: false,
-            salaSelecionada: null,
             modalExcluirVisivel: false,
+            salaSelecionada: null,
             salaExcluida: null,
         }
     },
@@ -195,12 +197,19 @@ export default {
             try {
                 // consulta atravez do getDocs, com o nome da coleção de salas
                 // e vai retornar um objeto querysnashot
-                const querySnapshot = await getDocs(collection(db, 'salas'));
-                // pega o objeto e itera dentro da sala no caso que e as salas do obj state
-                querySnapshot.forEach((doc) => {
+                // const querySnapshot = await getDocs(collection(db, 'salas'));
+                // // pega o objeto e itera dentro da sala no caso que e as salas do obj state
+                // querySnapshot.forEach((doc) => {
+                //     state.salas.push(doc.data());
+                // });
+                // state.salasCarregadas = true;
+
+                const professorSnapshot = await getDocs(query(collection(db, 'salas'), where('emailProfessorSala', '==', currentUserEmail)));
+                professorSnapshot.forEach((doc) => {
                     state.salas.push(doc.data());
                 });
                 state.salasCarregadas = true;
+
 
                 const querySnapshot1 = await getDocs(query(collection(db, 'users'), where('email', '==', currentUserEmail)));
                 if (!querySnapshot1.empty) {
@@ -208,7 +217,6 @@ export default {
                     state.professor.nome = professorDoc.data().fistName;
                     state.professor.sobrenome = professorDoc.data().lastName;
                 }
-
 
                 // caso aconteça algum erro vai dar erro
             } catch (error) {
@@ -219,7 +227,7 @@ export default {
 
         return state;
     },
-    
+
 };
 </script>
 <style scoped>

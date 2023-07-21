@@ -16,19 +16,38 @@ export default {
     name: 'LogoutButton',
 
     methods: {
-        logout() {
+        ...mapActions(['logout']),
+
+        async logout() {
             const auth = getAuth();
 
-            signOut(auth)
-                .then(() => {
-                    store.commit('clearCurrentUserEmail');
-                    this.$router.push('/');
-                })
-                .catch((error) => {
-                    console.error('Erro durante o logout:', error);
-                    //erro
-                });
-        },
+            try {
+                await signOut(auth);
+                store.commit('clearCurrentUserEmail');
+
+                // Remove o estado do usuário logado do localStorage
+                localStorage.removeItem('currentUserEmail');
+
+                this.$router.push('/');
+
+            } catch (error) {
+                console.error('Erro durante o logout:', error);
+                // Tratar o erro, se necessário
+            }
+        }
+        // logout() {
+        //     const auth = getAuth();
+
+        //     signOut(auth)
+        //         .then(() => {
+        //             store.commit('clearCurrentUserEmail');
+        //             this.$router.push('/');
+        //         })
+        //         .catch((error) => {
+        //             console.error('Erro durante o logout:', error);
+        //             //erro
+        //         });
+        // },
     },
 }
 

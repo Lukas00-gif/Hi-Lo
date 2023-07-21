@@ -77,6 +77,13 @@ export default {
     }
   },
 
+  created() {
+    const savedUserEmail = localStorage.getItem('currentUserEmail');
+    if(savedUserEmail) {
+      store.commit('setCurrentUserEmail', savedUserEmail);
+    }
+  },
+
   computed: {
     // e o tipo de usuario
     // pega e divido o email em duas partes separando com o @
@@ -104,6 +111,8 @@ export default {
           const user = userCredential.user;
 
           store.commit('setCurrentUserEmail', user.email);
+
+          localStorage.setItem('currentUserEmail', user.email);
 
           // Consulta para encontrar o usuário no Firestore com base no email
           const db = getFirestore();
