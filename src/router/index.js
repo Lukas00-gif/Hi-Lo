@@ -8,6 +8,7 @@ import Cadastro from '../views/CadastroView.vue'
 import HomeAluno from '../views/HomeAluno.vue'
 import HomeProfessor from '../views/HomeProfessor.vue'
 import EsqueciSenha from '../components/EsquecerSenha.vue'
+import EntrarSala from '../components/EntrarSala.vue'
 
 const toast = useToast();
 
@@ -57,6 +58,13 @@ const routes = [
     component: HomeProfessor,
     beforeEnter: authGuard,
   },
+  {
+    path: '/entrar-sala/:codigoSala',
+    name: 'EntrarSala',
+    component: EntrarSala,
+    beforeEnter: authGuard,
+  },
+  
   {
     // caso nao seja uma url valida, ele volta para a do login
     path: '/:pathMatch(.*)*',

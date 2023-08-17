@@ -38,7 +38,9 @@
                                     Editar Sala
                                 </button>
 
-                                <button class="btn-entrar">Entrar na sala</button>
+                                <button class="btn-entrar" @click="entrarNaSala(sala)">
+                                    Entrar na sala
+                                </button>
 
                                 <button class="btn-deletar" @click="abrirModalExcluir(sala)">
                                     Deletar
@@ -173,6 +175,12 @@ export default {
         fecharModalEditarSala() {
             this.mostrarModalEditarSala = false;
         },
+
+        entrarNaSala(sala) {
+            const codigoSala = sala.codigo;
+            this.$router.push({ name: 'EntrarSala', params: { codigoSala } });
+        },
+
     },
 
     //quando inicia o compomente
