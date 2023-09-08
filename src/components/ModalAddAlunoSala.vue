@@ -6,17 +6,17 @@
                 <h2 class="title">Adicionar Codigo da Sala</h2>
                 <div class="form-group">
                     <label for="codigo-sala">Código da Sala:</label>
-                    <input type="text" id="codigo-sala" v-model.trim="v$.codigoSala.$model" 
-                        :class="{ errorMessage: v$.codigoSala.$error }"/>
+                    <input type="text" id="codigo-sala" v-model.trim="v$.codigoSala.$model"
+                        :class="{ errorMessage: v$.codigoSala.$error }" />
                 </div>
-                
+
                 <div v-if="errorMessage" class="error-message">O Campo Codigo da Sala deve ser Preenchido</div>
 
                 <div class="button-group">
-                    <button class="btn-add" @click="adicionarCodigo" >
+                    <button class="btn-add" @click="adicionarCodigo">
                         Adicionar Codigo
                     </button>
-                    <button class="btn-cancel" @click="cancelarCodigo" >
+                    <button class="btn-cancel" @click="cancelarCodigo">
                         Cancelar
                     </button>
                 </div>
@@ -29,6 +29,19 @@
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import { useToast } from 'vue-toastification';
+import {
+    getDocs,
+    getFirestore,
+    collection,
+    query,
+    where,
+    updateDoc,
+    arrayUnion,
+    doc,
+    getDoc,
+    setDoc
+} from 'firebase/firestore';
+import store from '@/state/store';
 
 const toast = useToast()
 
@@ -50,26 +63,62 @@ export default {
     },
 
     methods: {
-        adicionarCodigo() {
-            // Lógica para adicionar o aluno na sala
+        async adicionarCodigo() {
             if (!this.v$.$invalid) {
-                // deu certo
+                const db = getFirestore();
+                const codigoSala = this.codigoSala;
+                const alunoEmail = store.state.currentUserEmail; // ou de onde você obtém o email do aluno
+
+                // Verifique se a sala existe
+                const salaRef = doc(db, 'salas', codigoSala); // 'codigoSala' agora é o nome do documento
+                const salaDoc = await getDoc(salaRef);
+
+                if (salaDoc.exists()) {
+                    // A sala existe, agora você pode adicionar o email do aluno ao array
+                    const salaData = salaDoc.data(); // Obtenha os dados da sala
+
+                    // Certifique-se de que 'alunos' seja um campo de array na sua estrutura de dados da sala
+                    if (!salaData.alunos) {
+                        salaData.alunos = [];
+                    }
+
+                    // Adicione o email do aluno ao array
+                    salaData.alunos.push(alunoEmail);
+
+                    // Atualize a sala com o novo array de alunos
+                    await setDoc(salaRef, salaData);
+
+                    toast.success('A Sala foi Adicionada!', {
+                        position: "bottom-right",
+                        timeout: 5000
+                    });
+
+                    this.$emit('sala-encontrada', salaData);
+                } else {
+                    toast.warning('Essa Sala não foi Encontrada, Verifique o Codigo', {
+                        position: "bottom-right",
+                        timeout: 5000
+                    });
+                }
+
+                this.$emit('fechar');
             } else {
                 this.v$.$touch();
-                this.errorMessage = true
+                this.errorMessage = true;
                 toast.error("Erro ao Adicionar o Codigo de Sala", {
                     position: "bottom-right",
                     timeout: 5000,
                 });
             }
         },
-        cancelarCodigo () {
+
+        cancelarCodigo() {
             this.$emit('fechar')
         }
     }
 };
 </script>
-  
+
 <style scoped>
 /* Estilos para o modal */
 .modal {
@@ -138,7 +187,7 @@ input[type="text"] {
     border: 1px solid #c7c7c7;
     border-radius: 5px;
     width: 100%;
-}   
+}
 
 .btn-add {
     background-color: #039e37;
@@ -178,6 +227,4 @@ input[type="text"] {
     color: red;
     font-size: 12px;
 }
-
 </style>
-  

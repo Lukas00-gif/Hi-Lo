@@ -10,9 +10,31 @@
             <span>Bem-vindo(a) {{ aluno.nome }} {{ aluno.sobrenome }} </span>
         </nav>
 
-        <h1>Area do Aluno</h1>
-        <!-- add o aluno na sala de aula -->
-        <ModalAddAlunoSala v-if="mostrarModalAddAlunoSala" @fechar="fecharModalAddAlunoSala" />
+        <!-- <ModalAddAlunoSala v-if="mostrarModalAddAlunoSala" @fechar="fecharModalAddAlunoSala" /> -->
+        <ModalAddAlunoSala v-if="mostrarModalAddAlunoSala" @fechar="fecharModalAddAlunoSala"
+            @sala-encontrada="exibirSala" />
+
+        <div class="container">
+            <div class="card-deck" v-if="salasCarregadas ">
+                <div v-for="sala in salasFiltradas" :key="sala.codigo">
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="cod">Codigo da sala: {{ sala.codigo }}</p>
+                            <h5 class="card-title">{{ sala.nomeMateria }}</h5>
+                            <p class="card-text">Professor: {{ sala.nomeProfessor }}</p>
+                            <p class="card-text">Curso: {{ sala.nomeCurso }}</p>
+                            <button class="btn-entrar" @click="exibirSala(sala)">
+                                Entrar na sala
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else>
+                <p v-if="salasFiltradas.length > 0">Ainda não há salas cadastradas.</p>
+                <p v-else> Carregando Salas...</p>
+            </div>
+        </div>
 
         <footer>
             <p>&copy; 2023 | HI-LO</p>
@@ -22,15 +44,14 @@
 
 <script>
 import ModalAddAlunoSala from '../components/ModalAddAlunoSala.vue';
-
-
 import { onMounted, reactive } from 'vue';
 import {
     getFirestore,
     collection,
     getDocs,
     query,
-    where
+    where,
+doc
 } from 'firebase/firestore';
 
 import store from '@/state/store';
@@ -44,12 +65,16 @@ export default {
 
     data() {
         return {
+            salas: [],
             mostrarModalAddAlunoSala: false,
         }
     },
-
+    
     setup() {
         const state = reactive({
+            salasFiltradas: [],
+            // salasCarregadas: [], original
+            salasCarregadas: false,
             aluno: {
                 nome: '',
                 sobrenome: ''
@@ -69,6 +94,20 @@ export default {
                 state.aluno.sobrenome = alunoDoc.data().lastName;
             }
 
+            // consultar as salas em que o email esta dentro do array "alunos"
+            const salasQuery = query(collection(db, 'salas'), where('alunos', 'array-contains', currentUserEmail));
+            const salasSnapshot = await getDocs(salasQuery);
+
+            // limpar a lista de salas
+            state.salasFiltradas = []
+
+            //preencher a lista com as salas encontradas
+            salasSnapshot.forEach((doc) => {
+                state.salasFiltradas.push(doc.data());
+            });
+
+            state.salasCarregadas = true;
+
         })
 
         return state
@@ -82,12 +121,50 @@ export default {
         fecharModalAddAlunoSala() {
             this.mostrarModalAddAlunoSala = false;
         },
+        // Função para adicionar a sala ao HomeAluno
+        exibirSala(sala) {
+            const codigoSala = sala.codigo;
+            this.$router.push({ name: 'EntrarSala', params: { codigoSala } });
+        },
     }
 
 };
 </script>
 
 <style scoped>
+.container {
+    margin-top: 25px;
+}
+
+.card-deck {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 80px;
+}
+
+.card {
+    width: 360px;
+    background-color: #bfbbbb;
+    border: 1px solid #3b3939;
+}
+
+.btn-entrar {
+    background-color: #2b2b2d;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+.btn-entrar:hover {
+    background-color: #0056b3;
+}
+
+.cod {
+    font-size: 10px;
+}
+
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -140,4 +217,5 @@ footer {
     width: 100%;
 }
 </style>
+
 
