@@ -44,7 +44,7 @@ export default {
     name: 'entrarSala',
     methods: {
         voltar() {
-            this.$router.push('/home-professor');
+            this.$router.go(-1);
         }
     }
 }

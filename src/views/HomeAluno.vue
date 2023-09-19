@@ -14,18 +14,27 @@
         <ModalAddAlunoSala v-if="mostrarModalAddAlunoSala" @fechar="fecharModalAddAlunoSala"
             @sala-encontrada="exibirSala" />
 
+        <ModalExcluirSalaAluno v-if="mostrarModalExcluirSalaAluno" :sala="salaSelecionada" @sair-da-sala="sairDaSala"
+            @cancelar-saida="cancelarSaida" />
+
+
         <div class="container">
-            <div class="card-deck" v-if="salasCarregadas ">
-                <div v-for="sala in salasFiltradas" :key="sala.codigo">
+            <div class="card-deck" v-if="salasCarregadas">
+                <div v-for="sala in salasFiltradas" :key="sala.codigo" class="sala-card">
                     <div class="card">
                         <div class="card-body">
                             <p class="cod">Codigo da sala: {{ sala.codigo }}</p>
                             <h5 class="card-title">{{ sala.nomeMateria }}</h5>
                             <p class="card-text">Professor: {{ sala.nomeProfessor }}</p>
                             <p class="card-text">Curso: {{ sala.nomeCurso }}</p>
-                            <button class="btn-entrar" @click="exibirSala(sala)">
-                                Entrar na sala
-                            </button>
+                            <div class="sala-header">
+                                <button class="btn-entrar" @click="exibirSala(sala)">
+                                    Entrar na sala
+                                </button>
+                                <button class="btn-sair" @click="prepararSaida(sala)">
+                                    Sair
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -44,6 +53,7 @@
 
 <script>
 import ModalAddAlunoSala from '../components/ModalAddAlunoSala.vue';
+import ModalExcluirSalaAluno from '../components/ModalExcluirSalaAluno.vue';
 import { onMounted, reactive } from 'vue';
 import {
     getFirestore,
@@ -51,7 +61,9 @@ import {
     getDocs,
     query,
     where,
-doc
+    updateDoc,
+    arrayRemove,
+    doc
 } from 'firebase/firestore';
 
 import store from '@/state/store';
@@ -61,15 +73,17 @@ export default {
 
     name: 'NavBar',
 
-    components: { Logout, ModalAddAlunoSala },
+    components: { Logout, ModalAddAlunoSala, ModalExcluirSalaAluno },
 
     data() {
         return {
             salas: [],
             mostrarModalAddAlunoSala: false,
+            mostrarModalExcluirSalaAluno: false,
+            salaSelecionada: null,
         }
     },
-    
+
     setup() {
         const state = reactive({
             salasFiltradas: [],
@@ -126,6 +140,35 @@ export default {
             const codigoSala = sala.codigo;
             this.$router.push({ name: 'EntrarSala', params: { codigoSala } });
         },
+
+        
+        // Função para preparar a saída da sala (abrir o modal de confirmação)
+        prepararSaida(sala) {
+            this.salaSelecionada = sala;
+            this.mostrarModalExcluirSalaAluno = true;
+        },
+        cancelarSaida() {
+            this.mostrarModalExcluirSalaAluno = false;
+            this.salaSelecionada = null;
+        },
+        sairDaSala(sala) {
+            const db = getFirestore();
+            const salaRef = doc(db, 'salas', sala.codigo);
+
+            updateDoc(salaRef, {
+                alunos: arrayRemove(store.state.currentUserEmail)
+            });
+
+            // remover a sala da lista
+            const index = this.salasFiltradas.findIndex(s => s.codigo === sala.codigo);
+            if (index !== -1) {
+                this.salasFiltradas.splice(index, 1);
+            }
+
+            // fechar o modal 
+            this.mostrarModalExcluirSalaAluno = false;
+        }
+
     }
 
 };
@@ -143,21 +186,31 @@ export default {
     margin-bottom: 80px;
 }
 
+.sala-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
 .card {
     width: 360px;
     background-color: #bfbbbb;
     border: 1px solid #3b3939;
 }
 
-.btn-entrar {
+.btn-entrar,
+.btn-sair {
     background-color: #2b2b2d;
     color: #fff;
     border: none;
     padding: 5px 10px;
     cursor: pointer;
     border-radius: 10px;
+    margin-right: 10px;
 }
-.btn-entrar:hover {
+
+.btn-entrar:hover,
+.btn-sair:hover {
     background-color: #0056b3;
 }
 
@@ -175,7 +228,6 @@ export default {
 }
 
 .navbar h3 {
-    /* margin: 0; */
     font-size: 1.5rem;
 }
 

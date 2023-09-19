@@ -30,18 +30,8 @@ export default {
                 toast.success("Exclusão da Sala foi feita com Sucesso", {
                     position: "bottom-right",
                     timeout: 5000,
-                    closeOnClick: true,
-                    pauseOnFocusLoss: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    draggablePercent: 0.6,
-                    showCloseButtonOnHover: false,
-                    hideProgressBar: true,
                     closeButton: "button",
-                    icon: true,
-                    rtl: false
                 });
-
 
                 this.$emit('sala-excluida', this.sala);
                 this.fecharModal();
@@ -57,7 +47,7 @@ export default {
     },
 };
 </script>
-  
+
 <style scoped>
 .modal {
     display: block;

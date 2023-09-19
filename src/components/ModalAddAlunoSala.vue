@@ -82,18 +82,28 @@ export default {
                         salaData.alunos = [];
                     }
 
-                    // Adicione o email do aluno ao array
-                    salaData.alunos.push(alunoEmail);
+                    // ve se o email esta dentro do array salaData
+                    if(!salaData.alunos.includes(alunoEmail)){
+                        // Adicione o email do aluno ao array
+                        salaData.alunos.push(alunoEmail);
+    
+                        // Atualize a sala com o novo array de alunos
+                        await setDoc(salaRef, salaData);
+    
+                        toast.success('A Sala foi Adicionada!', {
+                            position: "bottom-right",
+                            timeout: 5000
+                        });
 
-                    // Atualize a sala com o novo array de alunos
-                    await setDoc(salaRef, salaData);
+                        this.$emit('sala-encontrada', salaData);
 
-                    toast.success('A Sala foi Adicionada!', {
-                        position: "bottom-right",
-                        timeout: 5000
-                    });
-
-                    this.$emit('sala-encontrada', salaData);
+                    } else {
+                        // aluno ja esta na sala de aula
+                        toast.warning('Voce ja Esta na Sala de Aula!', {
+                            position: 'bottom-right',
+                            timeout: 3000
+                        });
+                    }
                 } else {
                     toast.warning('Essa Sala não foi Encontrada, Verifique o Codigo', {
                         position: "bottom-right",
