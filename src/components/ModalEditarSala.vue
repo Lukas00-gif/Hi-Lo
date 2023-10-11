@@ -103,14 +103,15 @@ export default {
 
                     toast.success("Alterações Feita com Sucesso!", {
                         position: "bottom-right",
-                        timeout: 3000,
+                        timeout: 2000,
                     });
 
                     // emiti um evento chamado sala-editada para a view home-professor
                     this.$emit('sala-editada', this.salaEditada);
                     this.fecharModal();
                 } catch (error) {
-                    console.log('DEU ERRO BOY -> ', error)
+                    console.log('error ', error)
+                    // depois ve a modificaçao disso
                     alert('erro ao salvar as alteraçoes, tente novamente')
                 }
             } else {

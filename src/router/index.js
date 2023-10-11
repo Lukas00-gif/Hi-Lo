@@ -64,7 +64,6 @@ const routes = [
     component: EntrarSala,
     beforeEnter: authGuard,
   },
-  
   {
     // caso nao seja uma url valida, ele volta para a do login
     path: '/:pathMatch(.*)*',

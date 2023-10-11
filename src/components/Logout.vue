@@ -35,19 +35,6 @@ export default {
                 // Tratar o erro, se necessário
             }
         }
-        // logout() {
-        //     const auth = getAuth();
-
-        //     signOut(auth)
-        //         .then(() => {
-        //             store.commit('clearCurrentUserEmail');
-        //             this.$router.push('/');
-        //         })
-        //         .catch((error) => {
-        //             console.error('Erro durante o logout:', error);
-        //             //erro
-        //         });
-        // },
     },
 }
 

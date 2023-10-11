@@ -129,24 +129,24 @@ export default {
             if (this.userType === 'aluno') {
               toast.info('Bem-vindo Aluno!', {
                 position: "bottom-right",
-                timeout: 5000,
+                timeout: 3000,
               });
               router.push('/home-aluno');
             } else {
               toast.info('Bem-vindo Professor!', {
                 position: "bottom-right",
-                timeout: 5000,
+                timeout: 3000,
               });
               router.push('/home-professor');
             }
           } else {
-            toast.error('Email ou senha inválidos');
+            toast.error('Erro ao realizar o login');
             this.LoginError = true;
           }
 
         } catch (error) {
           console.log(error);
-          toast.error('Erro ao realizar o login');
+          toast.error('Email ou senha inválidos');
           this.LoginError = true;
         }
       } else {

@@ -29,7 +29,7 @@ export default {
 
                 toast.success("Exclusão da Sala foi feita com Sucesso", {
                     position: "bottom-right",
-                    timeout: 5000,
+                    timeout: 3000,
                     closeButton: "button",
                 });
 

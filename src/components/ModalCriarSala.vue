@@ -132,14 +132,14 @@ export default {
 
                     } catch (error) {
                         console.error('Erro ao criar sala:', error);
-                        toast.error("Ocorreu um erro ao criar a sala", {
+                        toast.error("Ocorreu um Erro ao Criar uma Sala", {
                             position: "bottom-right",
                             timeout: 3000,
                         });
                     }
                     
                 } else {
-                    toast.error("Por favor, coloque o email do professor responsável", {
+                    toast.error("Por favor, Coloque o Email do Professor Responsável", {
                         position: "bottom-right",
                         timeout: 4000,
                     });
@@ -147,9 +147,9 @@ export default {
             } else {
                 this.v$.$touch();
                 this.LoginErrorMessage = true;
-                toast.error("Ocorreu um erro ao criar a sala", {
+                toast.error("Ocorreu um Erro ao criar a sala", {
                     position: "bottom-right",
-                    timeout: 2000,
+                    timeout: 3000,
                 });
             }
         },

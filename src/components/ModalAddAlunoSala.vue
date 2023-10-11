@@ -92,20 +92,20 @@ export default {
     
                         toast.success('A Sala foi Adicionada!', {
                             position: "bottom-right",
-                            timeout: 5000
+                            timeout: 3000
                         });
 
                         this.$emit('sala-encontrada', salaData);
 
                     } else {
                         // aluno ja esta na sala de aula
-                        toast.warning('Voce ja Esta na Sala de Aula!', {
+                        toast.warning('Você já Esta na Sala de Aula!', {
                             position: 'bottom-right',
-                            timeout: 3000
+                            timeout: 4000
                         });
                     }
                 } else {
-                    toast.warning('Essa Sala não foi Encontrada, Verifique o Codigo', {
+                    toast.warning('Essa Sala não foi Encontrada, Verifique o Código!', {
                         position: "bottom-right",
                         timeout: 5000
                     });
@@ -115,7 +115,7 @@ export default {
             } else {
                 this.v$.$touch();
                 this.errorMessage = true;
-                toast.error("Erro ao Adicionar o Codigo de Sala", {
+                toast.error("Erro ao Adicionar o Código de Sala", {
                     position: "bottom-right",
                     timeout: 5000,
                 });
