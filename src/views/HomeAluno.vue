@@ -23,15 +23,24 @@
                 <div v-for="sala in salasFiltradas" :key="sala.codigo" class="sala-card">
                     <div class="card">
                         <div class="card-body">
-                            <p class="cod">Codigo da sala: {{ sala.codigo }}</p>
+                            <p class="cod">Codigo da sala: {{ sala.codigo }} 
+                                <span class="aviso-desativada" v-if="sala.ativada === true">
+                                    ( Sala Esta Desativada )
+                                </span>
+                            </p>
                             <h5 class="card-title">{{ sala.nomeMateria }}</h5>
                             <p class="card-text">Professor: {{ sala.nomeProfessor }}</p>
                             <p class="card-text">Curso: {{ sala.nomeCurso }}</p>
                             <div class="sala-header">
-                                <button class="btn-entrar" @click="exibirSala(sala)">
+                                <button class="btn-entrar" @click="exibirSala(sala)" :disabled="sala.ativada"
+                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed', } : {}"
+                                    >
                                     Entrar na sala
                                 </button>
-                                <button class="btn-sair" @click="prepararSaida(sala)">
+
+                                <button class="btn-sair" @click="prepararSaida(sala)" :disabled="sala.ativada"
+                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}"
+                                >
                                     Sair
                                 </button>
                             </div>
@@ -117,6 +126,8 @@ export default {
 
             //preencher a lista com as salas encontradas
             salasSnapshot.forEach((doc) => {
+                const salaData = doc.data();
+                salaData.ativada = salaData.ativada || false;
                 state.salasFiltradas.push(doc.data());
             });
 
@@ -217,6 +228,13 @@ export default {
 .cod {
     font-size: 10px;
 }
+
+.aviso-desativada {
+    color: red;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
 
 .navbar {
     display: flex;

@@ -34,17 +34,30 @@
                             <p class="card-text">Curso: {{ sala.nomeCurso }}</p>
                             <div class="button-group">
 
-                                <button class="btn-editar" @click="editarSala(sala)">
-                                    Editar Sala
+                                <button class="btn-editar" @click="editarSala(sala)" :disabled="sala.ativada"
+                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}" 
+                                >
+                                        Editar Sala
                                 </button>
 
-                                <button class="btn-entrar" @click="entrarNaSala(sala)">
-                                    Entrar na sala
+                                <button class="btn-entrar" @click="entrarNaSala(sala)" :disabled="sala.ativada"
+                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}"
+                                >
+                                        Entrar na sala
                                 </button>
 
-                                <button class="btn-deletar" @click="abrirModalExcluir(sala)">
+                                <!-- substituir por um radio boton que deve aparecer na sala corespondente
+                                um valor boolen, se estiver falso a sala esta desativada se for true 
+                                a sala estta ativada, e desativar os botoes menos o radio boton -->
+                                <!-- <button class="btn-deletar" @click="abrirModalExcluir(sala)">
                                     Deletar
-                                </button>
+                                </button> -->
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="toggle-input" v-model="sala.ativada"
+                                        @change="alterarStatusSala(sala)">
+                                    <span class="slider round"></span>
+                                </label>
+
                             </div>
                         </div>
                     </div>
@@ -73,12 +86,14 @@ import {
     getFirestore,
     collection,
     getDocs,
+    getDoc,
     deleteDoc,
     updateDoc,
     doc,
     query,
     where
 } from 'firebase/firestore';
+import { useToast } from 'vue-toastification';
 import store from '@/state/store';
 
 export default {
@@ -110,36 +125,73 @@ export default {
         },
 
         // os metodos do Modal excluir
-        abrirModalExcluir(sala) {
-            this.salaExcluida = sala;
-            this.modalExcluirVisivel = true;
-        },
-        excluirSala(salaExcluida) {
-            // Aqui você pode remover a sala excluída do Firebase
-            // e também do array de salas localmente
+        // alterarStatusSala(sala) {
+        //     this.salaExcluida = sala;
+        //     this.modalExcluirVisivel = true;
+        // },
+        // excluirSala(salaExcluida) {
+        //     // Aqui você pode remover a sala excluída do Firebase
+        //     // e também do array de salas localmente
+        //     const db = getFirestore();
+
+        //     try {
+        //         const docRef = doc(db, 'salas', salaExcluida.codigo);
+        //         deleteDoc(docRef);
+
+        //         const index = this.salas.findIndex(sala => sala.codigo === salaExcluida.codigo);
+        //         if (index !== -1) {
+        //             this.salas.splice(index, 1);
+        //         }
+
+        //         // Emitir evento para informar que a sala foi excluída
+        //         this.$emit('sala-excluida', salaExcluida);
+        //     } catch (error) {
+        //         console.error('Erro ao excluir a sala:', error);
+        //         alert('Erro ao excluir a sala. Por favor, tente novamente.');
+        //     }
+
+        //     this.fecharModalExcluir();
+        // },
+        // fecharModalExcluir() {
+        //     this.modalExcluirVisivel = false;
+        //     this.salaExcluida = null;
+        // },
+
+        alterarStatusSala(sala) {
             const db = getFirestore();
+            const salaRef = doc(db, 'salas', sala.codigo);
+            
+            updateDoc(salaRef, { ativada: sala.ativada })
+                .then(() => {
+                    if (sala.ativada) {
+                        // Sala foi desativada quando o toggle esta ativado
+                        this.notifySalaDesativada();
+                    } else {
+                        // Sala foi ativada quando o toggle esta desativado
+                        this.notifySalaAtivada();
+                    }
+                })
+                .catch((error) => {
+                    console.error('erro ao atualizar o status da sala', error);
+                    alert('nao deu')
+                })
 
-            try {
-                const docRef = doc(db, 'salas', salaExcluida.codigo);
-                deleteDoc(docRef);
-
-                const index = this.salas.findIndex(sala => sala.codigo === salaExcluida.codigo);
-                if (index !== -1) {
-                    this.salas.splice(index, 1);
-                }
-
-                // Emitir evento para informar que a sala foi excluída
-                this.$emit('sala-excluida', salaExcluida);
-            } catch (error) {
-                console.error('Erro ao excluir a sala:', error);
-                alert('Erro ao excluir a sala. Por favor, tente novamente.');
-            }
-
-            this.fecharModalExcluir();
         },
-        fecharModalExcluir() {
-            this.modalExcluirVisivel = false;
-            this.salaExcluida = null;
+
+        notifySalaAtivada() {
+            const toast = useToast();
+            toast.success('Sala ativada com sucesso.', {
+                position: 'bottom-right',
+                timeout: 3000, // Tempo de exibição do Toast em milissegundos
+            });
+        },
+
+        notifySalaDesativada() {
+            const toast = useToast();
+            toast.warning('Sala desativada com sucesso.', {
+                position: 'bottom-right',
+                timeout: 3000, // Tempo de exibição do Toast em milissegundos
+            });
         },
 
         // os metodos do modal editar
@@ -195,8 +247,9 @@ export default {
                 sobrenome: ''
             }
         });
-
+ 
         const db = getFirestore();
+        const variableDoc = doc;
         const currentUserEmail = store.state.currentUserEmail;
 
         // é  usada  para excultar uma consulta  no firestore assim que o  compomente for
@@ -213,8 +266,18 @@ export default {
                 // state.salasCarregadas = true;
 
                 const professorSnapshot = await getDocs(query(collection(db, 'salas'), where('emailProfessorSala', '==', currentUserEmail)));
-                professorSnapshot.forEach((doc) => {
+                professorSnapshot.forEach(async (doc) => {
                     state.salas.push(doc.data());
+
+                    const salaData = doc.data();
+                    const salaRef = variableDoc(db, 'salas', salaData.codigo);
+                    // const salaDoc = await getDocs(salaRef);
+                    const salaDoc = await getDoc(salaRef);
+
+                    if (salaDoc.exists()){
+                        salaData.ativada = salaDoc.data().ativada;
+                    }
+                    // state.salas.push(salaData); 
                 });
                 state.salasCarregadas = true;
 
@@ -331,6 +394,54 @@ h3 {
 span {
     margin-right: 2%;
     padding: 5px;
+}
+
+/* Estilos para o toggle switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    /* Cor de fundo quando desativado */
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+/* Estilo do toggle switch quando ativado */
+.toggle-input:checked+.slider {
+    background-color: #4CAF50;
+    /* Cor de fundo quando ativado (verde) */
+}
+
+.toggle-input:checked+.slider:before {
+    transform: translateX(26px);
+    /* Posição quando ativado */
 }
 
 footer {

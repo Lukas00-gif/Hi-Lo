@@ -1,8 +1,8 @@
 <template>
     <div class="modal">
         <div class="modal-content">
-            <h2 class="title">Excluir Sala de Aula</h2>
-            <p>Tem certeza que deseja EXCLUIR a sala <strong>"{{ sala.nomeMateria }}"</strong>?</p>
+            <h2 class="title">Desativar Sala</h2>
+            <p>tem certeza que voce quer desativar a sala de <strong>"{{ sala.nomeMateria }}"</strong>?</p>
             <div class="button-group">
                 <button class="btn-sim" @click="excluirSala">Sim</button>
                 <button class="btn-nao" @click="$emit('fechar')">Não</button>
