@@ -5,7 +5,7 @@
                 <button class="back-button" @click="voltar">Voltar</button>
                 <div class="buttons-group">
                     <button class="header-button">Mural</button>
-                    <button class="header-button">Atividades</button>
+                    <button @click="mostrarAtividades" class="header-button">Atividades</button>
                     <button @click="mostrarPessoas" class="header-button">Pessoas</button>
                 </div>
                 <p class="sala-code" v-if="sala">Código da Sala: {{ sala.codigo }}</p>
@@ -17,7 +17,7 @@
             </div>
         </div>
 
-        <!-- Conteúdo de PessoasNaSala -->
+        <!-- conteudo do pessoas na sala -->
         <div v-if="mostrarPessoasFlag" class="container1">
             <h1>Pessoas na Sala</h1>
             <button @click="fecharPessoas" class="close-button">X</button> <!-- Botão de fechar -->
@@ -31,9 +31,26 @@
                 </li>
             </ul>
         </div>
+
+        <!-- conteudo de atividades -->
+        <div v-if="mostrarAtividadesFlag" class="container1">
+            <h1>Atividades</h1>
+            <button v-if="isUserProfessor()" class="create-activity-button">
+                Criar Atividade
+            </button>
+            <button @click="fecharPessoas" class="close-button">X</button> <!-- Botão de fechar -->
+            <ul>
+                <!-- Exibir professor se existir -->
+                <li class="professor" v-if="professor">Professor: {{ professor }}</li>
+                <!-- Exibir alunos se existirem -->
+                <li>Alunos: </li>
+                <li v-for="(aluno, index) in alunosNaSala" :key="index" class="aluno">
+                    {{ aluno.nome }} {{ aluno.sobrenome }}
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
-  
 
 <script setup>
 import { onMounted, ref } from 'vue';
@@ -46,9 +63,11 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
 const route = useRoute();
 const codigoSala = route.params.codigoSala;
 const sala = ref(null);
-const mostrarPessoasFlag = ref(false); // Variável para controlar a exibição de PessoasNaSala
+const mostrarPessoasFlag = ref(false);
+const mostrarAtividadesFlag = ref(false);
 const professor = ref({});
 const alunosNaSala = ref([]);
+const currentUserEmail = localStorage.getItem('currentUserEmail');
 
 const carregarPessoasNaSala = async () => {
     try {
@@ -106,14 +125,25 @@ onMounted(async () => {
     }
 });
 
-
 const mostrarPessoas = () => {
     carregarPessoasNaSala();
     mostrarPessoasFlag.value = true; // Defina a flag como verdadeira para exibir PessoasNaSala
 };
 
+const mostrarAtividades = () => {
+    // mudar a funçao que vai aparecer
+    carregarPessoasNaSala();
+    mostrarAtividadesFlag.value = true;
+}
+
+const isUserProfessor = () => {
+  // Verifica se o currentUserEmail contém a palavra "professor"
+    return currentUserEmail.includes('professor');
+};
+
 const fecharPessoas = () => {
     mostrarPessoasFlag.value = false; // Defina a flag como falsa para ocultar PessoasNaSala
+    mostrarAtividadesFlag.value = false;
 };
 
 const voltar = () => {
@@ -208,6 +238,16 @@ const voltar = () => {
     margin: 5px 0;
 }
 
+.create-activity-button {
+    background: #555; /* Cinza */
+    color: #fff; /* Branco */
+    border: none;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px; /* Espaçamento à direita do texto "Professor" */
+    cursor: pointer;
+  }
+
 .curso {
     font-size: 20px;
     margin-top: 5px;
@@ -263,6 +303,7 @@ li.aluno {
     margin-bottom: 5px;
     border-radius: 5px;
 }
+
 li.aluno {
     background-color: #f4f4f4;
 }
@@ -273,5 +314,6 @@ li.professor {
 
 li.aluno {
     margin-left: 20px;
-}</style>
+}
+</style>
 
