@@ -35,19 +35,30 @@
         <!-- conteudo de atividades -->
         <div v-if="mostrarAtividadesFlag" class="container1">
             <h1>Atividades</h1>
-            <button v-if="isUserProfessor()" class="create-activity-button">
+            <button v-if="isUserProfessor()" @click="mostrarFormulario" class="create-activity-button">
                 Criar Atividade
             </button>
             <button @click="fecharPessoas" class="close-button">X</button> <!-- Botão de fechar -->
-            <ul>
-                <!-- Exibir professor se existir -->
-                <li class="professor" v-if="professor">Professor: {{ professor }}</li>
-                <!-- Exibir alunos se existirem -->
-                <li>Alunos: </li>
-                <li v-for="(aluno, index) in alunosNaSala" :key="index" class="aluno">
-                    {{ aluno.nome }} {{ aluno.sobrenome }}
-                </li>
-            </ul>
+
+            <form @submit.prevent="enviarFormulario" v-if="isUserProfessor() && mostrarFormularioFlag">
+                <div class="form-group">
+                    <textarea v-model="tituloAtividade" class="form-control fixed-textarea-titulo" rows="3"
+                        placeholder="Digite o titulo da sua atividade">
+                    </textarea>
+
+                    <textarea v-model="descricaoAtividade" class="form-control fixed-textarea" rows="5"
+                        placeholder="Digite a atividade">
+                    </textarea>
+                </div>
+                <div class="form-group-button">
+                    <!-- Botão "Criar Atividade" -->
+                    <button type="submit" class="postar-atividade-button">Postar</button>
+
+                    <button @click="cancelarPostagem" type="submit" class="cancelar-atividade-button">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </template>
@@ -57,14 +68,22 @@ import { onMounted, ref } from 'vue';
 import { buscarSalaPeloCodigo } from '../utils/salas';
 import { useRoute } from 'vue-router';
 import { buscarDetalhesDoUsuarioPorEmail } from '../utils/usuarioPorEmail';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, setDoc } from 'firebase/firestore';
+import { useToast } from 'vue-toastification';
 
 
+
+const toast = useToast();
 const route = useRoute();
 const codigoSala = route.params.codigoSala;
 const sala = ref(null);
 const mostrarPessoasFlag = ref(false);
 const mostrarAtividadesFlag = ref(false);
+
+const mostrarFormularioFlag = ref(false);
+const tituloAtividade = ref('');
+const descricaoAtividade = ref('');
+
 const professor = ref({});
 const alunosNaSala = ref([]);
 const currentUserEmail = localStorage.getItem('currentUserEmail');
@@ -115,15 +134,72 @@ const carregarPessoasNaSala = async () => {
     }
 };
 
-onMounted(async () => {
-    try {
-        sala.value = await buscarSalaPeloCodigo(codigoSala);
-        console.log('sala: ', sala.value);
-    } catch (error) {
-        console.error('Erro ao buscar a sala:', error);
-        // Lide com o erro, por exemplo, redirecione o usuário para uma página de erro.
+// para fazer a verificaçao e retorna false ou true
+const validarFormulario = () => {
+    // Lógica de validação aqui
+    if (tituloAtividade.value.trim() === '' || descricaoAtividade.value.trim() === '') {
+        // Exibir mensagem de erro (você pode usar um toast aqui)
+        toast.error(' por favor preencha todos os campos', {
+            position: "bottom-right",
+            timeout: 3000,
+        });
+        return false;
     }
-});
+
+    if (tituloAtividade.value.length < 10 || descricaoAtividade.value.length < 10) {
+        // Exibir mensagem de erro (você pode usar um toast aqui)
+        toast.error('Os campos devem ter no minimo 10 caracteres', {
+            position: "bottom-right",
+            timeout: 3000,
+        });
+        return false;
+    }
+
+    // Se passar na validação
+    return true;
+};
+
+//ve a verificaçao e se for true ele entrar dentro para fazer a postagem
+const enviarFormulario = async () => {
+    if (validarFormulario()) {
+
+        // Lógica para criar a atividade
+        // Você pode acessar o conteúdo da atividade em conteudoAtividade.value
+        // Certifique-se de adicionar a lógica necessária para criar a atividade aqui
+        const db = getFirestore();
+
+        const atividade = {
+            // variavel para o bd : variavel do v-model
+            tituloAtividade: tituloAtividade.value,
+            descricaoAtividade: descricaoAtividade.value,
+            codigoSala: codigoSala,
+            emailProfessor: currentUserEmail,
+        }
+
+        try {
+            // add a coleçao atividadeees com o codigo sendo o documento e a variavel atitivade
+            // com outras variaveis
+            const atividadeColletionRef = collection(db, 'atividades');
+            const atividadeDocRef = doc(atividadeColletionRef, tituloAtividade.value);
+            await setDoc(atividadeDocRef, atividade);
+
+            toast.success("Postagem Feita", {
+                position: "bottom-right",
+                timeout: 2000,
+            });
+
+            // colocar o toast depois
+        } catch (error) {
+            alert('NAO DEU CERTO, BOY')
+            console.log('erro ao add a atividade', error)
+        }
+
+        // Limpar os campos após o envio
+        tituloAtividade.value = '';
+        descricaoAtividade.value = '';
+    }
+};
+
 
 const mostrarPessoas = () => {
     carregarPessoasNaSala();
@@ -137,20 +213,41 @@ const mostrarAtividades = () => {
 }
 
 const isUserProfessor = () => {
-  // Verifica se o currentUserEmail contém a palavra "professor"
+    // Verifica se o currentUserEmail contém a palavra "professor"
     return currentUserEmail.includes('professor');
+};
+
+const mostrarFormulario = () => {
+    mostrarFormularioFlag.value = true;
 };
 
 const fecharPessoas = () => {
     mostrarPessoasFlag.value = false; // Defina a flag como falsa para ocultar PessoasNaSala
     mostrarAtividadesFlag.value = false;
+    mostrarFormularioFlag.value = false;
 };
+
+const cancelarPostagem = () => {
+    mostrarFormularioFlag.value = false;
+}
 
 const voltar = () => {
     // Implemente a lógica de voltar para a página anterior
     // router.go(-1);
     window.history.go(-1);
 };
+
+
+onMounted(async () => {
+    try {
+        sala.value = await buscarSalaPeloCodigo(codigoSala);
+        console.log('sala: ', sala.value);
+    } catch (error) {
+        console.error('Erro ao buscar a sala:', error);
+        // Lide com o erro, por exemplo, redirecione o usuário para uma página de erro.
+    }
+});
+
 
 </script>
 
@@ -239,19 +336,89 @@ const voltar = () => {
 }
 
 .create-activity-button {
-    background: #555; /* Cinza */
-    color: #fff; /* Branco */
+    background: #555;
+    /* Cinza */
+    color: #fff;
+    /* Branco */
     border: none;
     padding: 2px 8px;
     border-radius: 4px;
-    margin-left: 8px; /* Espaçamento à direita do texto "Professor" */
+    margin-left: 8px;
+    /* Espaçamento à direita do texto "Professor" */
+    margin-bottom: 8px;
     cursor: pointer;
-  }
+
+}
+
+.postar-atividade-button {
+    background: #5fb013;
+    /* Cinza */
+    color: #fff;
+    /* Branco */
+    border: none;
+    padding: 4px 14px;
+    border-radius: 5px;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+.cancelar-atividade-button {
+    background: #f02424;
+    /* Cinza */
+    color: #fff;
+    /* Branco */
+    border: none;
+    padding: 4px 14px;
+    border-radius: 5px;
+    margin-top: 8px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.postar-atividade-button:hover {
+    background: #428a07;
+    /* Cinza */
+    color: #fff;
+    /* Branco */
+    border: none;
+    padding: 4px 14px;
+    border-radius: 5px;
+    margin-top: 8px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.cancelar-atividade-button:hover {
+    background: #8f2424;
+    /* Cinza */
+    color: #fff;
+    /* Branco */
+    border: none;
+    padding: 4px 14px;
+    border-radius: 5px;
+    margin-top: 8px;
+    margin-left: 10px;
+    cursor: pointer;
+}
 
 .curso {
     font-size: 20px;
     margin-top: 5px;
     color: #000;
+}
+
+.fixed-textarea {
+    height: 200px;
+    /* Defina a altura desejada em pixels */
+    resize: none;
+    /* Impede o redimensionamento do usuário */
+}
+
+.fixed-textarea-titulo {
+    height: 40px;
+    resize: none;
+    /* Impede o redimensionamento do usuário */
+    margin-bottom: 10px;
 }
 
 .container1 {

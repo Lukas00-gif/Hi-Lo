@@ -15,13 +15,14 @@ if (currentUserEmail) {
     store.commit('setCurrentUserEmail', currentUserEmail);
 }
 
-
 const firebaseApp  = initializeApp(firebaseConfig);
 
-createApp(App).use(router).use(store).use(Toast, 
-    {transition: "Vue-Toastification__slideBlurred",
-    maxToasts: 15,
-    newestOnTop: true}).mount('#app')
+// createApp(App).use(router).use(store).use(Toast).mount('#app')
+const app = createApp(App)
+app.use(router)
+app.use(store)
+app.use(Toast)
+app.mount('#app')
 
 
 export { firebaseApp }
