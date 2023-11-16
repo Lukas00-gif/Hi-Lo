@@ -4,9 +4,11 @@
             <div class="header">
                 <button class="back-button" @click="voltar">Voltar</button>
                 <div class="buttons-group">
-                    <button class="header-button">Mural</button>
-                    <button @click="mostrarAtividades" class="header-button">Atividades</button>
-                    <button @click="mostrarPessoas" class="header-button">Pessoas</button>
+                    <!-- <button @click="monstrarMural" class="header-button">Mural</button> -->
+
+                    <button @click="mostrarAtividades" v-if="isUserProfessor()" class="header-button"> Atividades </button>
+
+                    <button @click="mostrarPessoas" class="header-button">Pessoas na Sala</button>
                 </div>
                 <p class="sala-code" v-if="sala">Código da Sala: {{ sala.codigo }}</p>
             </div>
@@ -17,19 +19,19 @@
             </div>
         </div>
 
-        <!-- conteudo do pessoas na sala -->
-        <div v-if="mostrarPessoasFlag" class="container1">
-            <h1>Pessoas na Sala</h1>
-            <button @click="fecharPessoas" class="close-button">X</button> <!-- Botão de fechar -->
-            <ul>
-                <!-- Exibir professor se existir -->
-                <li class="professor" v-if="professor">Professor: {{ professor }}</li>
-                <!-- Exibir alunos se existirem -->
-                <li>Alunos: </li>
-                <li v-for="(aluno, index) in alunosNaSala" :key="index" class="aluno">
-                    {{ aluno.nome }} {{ aluno.sobrenome }}
-                </li>
-            </ul>
+
+        <!-- conteudo do mural(deve aparecer na hora que o user entrar na sala ) -->
+        <div v-if="mostrarMuralFlag" class="container1">
+            <h1>Mural de Atividades</h1>
+            <!-- <button @click="fecharPessoas" class="close-button">X</button> -->
+
+            <!-- Loop para renderizar atividades -->
+            <!-- Renderize as atividades -->
+            <div v-for="(atividade, index) in atividades" :key="index" class="atividade-container">
+                <div class="atividade-titulo">{{ atividade.tituloAtividade }}</div>
+                <div class="atividade-descricao">{{ atividade.descricaoAtividade }}</div>
+                <button class="responder-button" @click="responderAtividade(atividade)">Responder</button>
+            </div>
         </div>
 
         <!-- conteudo de atividades -->
@@ -51,7 +53,6 @@
                     </textarea>
                 </div>
                 <div class="form-group-button">
-                    <!-- Botão "Criar Atividade" -->
                     <button type="submit" class="postar-atividade-button">Postar</button>
 
                     <button @click="cancelarPostagem" type="submit" class="cancelar-atividade-button">
@@ -60,15 +61,41 @@
                 </div>
             </form>
         </div>
+
+        <!-- conteudo do pessoas na sala -->
+        <div v-if="mostrarPessoasFlag" class="container1">
+            <h1>Pessoas na Sala</h1>
+            <button @click="fecharPessoas" class="close-button">X</button> <!-- Botão de fechar -->
+            <ul>
+                <!-- Exibir professor se existir -->
+                <li class="professor" v-if="professor">Professor: {{ professor }}</li>
+                <!-- Exibir alunos se existirem -->
+                <li>Alunos: </li>
+                <li v-for="(aluno, index) in alunosNaSala" :key="index" class="aluno">
+                    {{ aluno.nome }} {{ aluno.sobrenome }}
+                </li>
+            </ul>
+        </div>
+
+
     </div>
 </template>
 
 <script setup>
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    getDocs,
+    collection,
+    setDoc,
+    query,
+    where
+} from 'firebase/firestore';
 import { onMounted, ref } from 'vue';
 import { buscarSalaPeloCodigo } from '../utils/salas';
 import { useRoute } from 'vue-router';
 import { buscarDetalhesDoUsuarioPorEmail } from '../utils/usuarioPorEmail';
-import { getFirestore, doc, getDoc, collection, setDoc } from 'firebase/firestore';
 import { useToast } from 'vue-toastification';
 
 
@@ -79,6 +106,7 @@ const codigoSala = route.params.codigoSala;
 const sala = ref(null);
 const mostrarPessoasFlag = ref(false);
 const mostrarAtividadesFlag = ref(false);
+const mostrarMuralFlag = ref(true);
 
 const mostrarFormularioFlag = ref(false);
 const tituloAtividade = ref('');
@@ -86,6 +114,7 @@ const descricaoAtividade = ref('');
 
 const professor = ref({});
 const alunosNaSala = ref([]);
+const atividades = ref([]);
 const currentUserEmail = localStorage.getItem('currentUserEmail');
 
 const carregarPessoasNaSala = async () => {
@@ -169,7 +198,7 @@ const enviarFormulario = async () => {
         const db = getFirestore();
 
         const atividade = {
-            // variavel para o bd : variavel do v-model
+            // variavel para o bd : variavel do v-model d template
             tituloAtividade: tituloAtividade.value,
             descricaoAtividade: descricaoAtividade.value,
             codigoSala: codigoSala,
@@ -200,6 +229,19 @@ const enviarFormulario = async () => {
     }
 };
 
+const carregarAtividades = async () => {
+    const db = getFirestore();
+    const atividadesColletionRef = collection(db, 'atividades');
+    const querySnapshot = await getDocs(query(atividadesColletionRef, where("codigoSala", "==", codigoSala)));
+
+    atividades.value = querySnapshot.docs.map((doc) => {
+        return doc.data();
+    });
+};
+
+// const monstrarMural = () => {
+//     mostrarMuralFlag.value = false;
+// };
 
 const mostrarPessoas = () => {
     carregarPessoasNaSala();
@@ -242,6 +284,10 @@ onMounted(async () => {
     try {
         sala.value = await buscarSalaPeloCodigo(codigoSala);
         console.log('sala: ', sala.value);
+
+        // aki ele vai montar na hora que ele entrar no compomente, e carrega-lo
+        carregarAtividades();
+
     } catch (error) {
         console.error('Erro ao buscar a sala:', error);
         // Lide com o erro, por exemplo, redirecione o usuário para uma página de erro.
@@ -377,28 +423,10 @@ onMounted(async () => {
 
 .postar-atividade-button:hover {
     background: #428a07;
-    /* Cinza */
-    color: #fff;
-    /* Branco */
-    border: none;
-    padding: 4px 14px;
-    border-radius: 5px;
-    margin-top: 8px;
-    margin-left: 10px;
-    cursor: pointer;
 }
 
 .cancelar-atividade-button:hover {
     background: #8f2424;
-    /* Cinza */
-    color: #fff;
-    /* Branco */
-    border: none;
-    padding: 4px 14px;
-    border-radius: 5px;
-    margin-top: 8px;
-    margin-left: 10px;
-    cursor: pointer;
 }
 
 .curso {
@@ -481,6 +509,37 @@ li.professor {
 
 li.aluno {
     margin-left: 20px;
+}
+
+
+.atividade-container {
+    background-color: #f0f0f0;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    margin-left: 80px;
+    margin-right: 80px;
+}
+
+.atividade-titulo {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.atividade-descricao {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.responder-button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
 }
 </style>
 
