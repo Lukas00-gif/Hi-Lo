@@ -20,19 +20,40 @@
         </div>
 
 
-        <!-- conteudo do mural(deve aparecer na hora que o user entrar na sala ) -->
+        <!-- conteudo do mural -->
         <div v-if="mostrarMuralFlag" class="container1">
             <h1>Mural de Atividades</h1>
-            <!-- <button @click="fecharPessoas" class="close-button">X</button> -->
-
-            <!-- Loop para renderizar atividades -->
-            <!-- Renderize as atividades -->
             <div v-for="(atividade, index) in atividades" :key="index" class="atividade-container">
                 <div class="atividade-titulo">{{ atividade.tituloAtividade }}</div>
                 <div class="atividade-descricao">{{ atividade.descricaoAtividade }}</div>
-                <button class="responder-button" @click="responderAtividade(atividade)">Responder</button>
+
+                <!-- Adiciona a classe 'atividade-aberta' se atividadeAberta for true -->
+                <button class="responder-button" @click="abrirAtividade(atividade)" v-show="!atividade.atividadeAberta">
+                    Abrir Atividade
+                </button>
+
+                <!-- Textarea e botões adicionais -->
+                <div v-show="atividade.atividadeAberta">
+                    <textarea v-model="tituloRespostaAluno" class="form-control fixed-textarea-titulo" rows="3"
+                        placeholder="Digite o Titulo da resposta">
+                    </textarea>
+
+                    <textarea v-model="respostaAtividade" rows="5" class="form-control fixed-textarea-resposta"
+                        placeholder="Digite sua resposta para a questao...">
+                    </textarea>
+
+                    <button class="enviar-atividade-button" @click="enviarResposta"
+                        :disabled="tituloRespostaAluno.trim() === '' || respostaAtividade.trim() === ''"
+                        :class="{ 'botao-desabilitado': tituloRespostaAluno.trim() === '' || respostaAtividade.trim() === '', 'enviar-atividade-button-hover': respostaAtividade.trim() !== '' }">
+                        Enviar Resposta
+                    </button>
+
+                    <button class="cancelar-atividade-button" @click="fecharAtividade(atividade)">Fechar Atividade</button>
+
+                </div>
             </div>
         </div>
+
 
         <!-- conteudo de atividades -->
         <div v-if="mostrarAtividadesFlag" class="container1">
@@ -50,6 +71,10 @@
 
                     <textarea v-model="descricaoAtividade" class="form-control fixed-textarea" rows="5"
                         placeholder="Digite a atividade">
+                    </textarea>
+
+                    <textarea v-model="codigoPython" class="form-control fixed-textarea-codigo" rows="5"
+                        placeholder="Digite o codigo em Python">
                     </textarea>
                 </div>
                 <div class="form-group-button">
@@ -103,14 +128,19 @@ import { useToast } from 'vue-toastification';
 const toast = useToast();
 const route = useRoute();
 const codigoSala = route.params.codigoSala;
+
+
 const sala = ref(null);
 const mostrarPessoasFlag = ref(false);
 const mostrarAtividadesFlag = ref(false);
 const mostrarMuralFlag = ref(true);
-
 const mostrarFormularioFlag = ref(false);
+
 const tituloAtividade = ref('');
 const descricaoAtividade = ref('');
+const codigoPython = ref('');
+const respostaAtividade = ref('');
+const tituloRespostaAluno = ref('');
 
 const professor = ref({});
 const alunosNaSala = ref([]);
@@ -166,7 +196,9 @@ const carregarPessoasNaSala = async () => {
 // para fazer a verificaçao e retorna false ou true
 const validarFormulario = () => {
     // Lógica de validação aqui
-    if (tituloAtividade.value.trim() === '' || descricaoAtividade.value.trim() === '') {
+    if (tituloAtividade.value.trim() === '' || descricaoAtividade.value.trim() === '' ||
+        codigoPython.value.trim() === '') {
+
         // Exibir mensagem de erro (você pode usar um toast aqui)
         toast.error(' por favor preencha todos os campos', {
             position: "bottom-right",
@@ -175,11 +207,20 @@ const validarFormulario = () => {
         return false;
     }
 
-    if (tituloAtividade.value.length < 10 || descricaoAtividade.value.length < 10) {
+    if (tituloAtividade.value.length < 10 || descricaoAtividade.value.length < 10 ||
+        codigoPython.value.length < 1) {
         // Exibir mensagem de erro (você pode usar um toast aqui)
         toast.error('Os campos devem ter no minimo 10 caracteres', {
             position: "bottom-right",
             timeout: 3000,
+        });
+        return false;
+    }
+
+    if (descricaoAtividade.value.length > 200) {
+        toast.error('O Campo descriçao da atividade deve ter no Maximo 200 Caracteres', {
+            position: "bottom-right",
+            timeout: 5000,
         });
         return false;
     }
@@ -201,6 +242,7 @@ const enviarFormulario = async () => {
             // variavel para o bd : variavel do v-model d template
             tituloAtividade: tituloAtividade.value,
             descricaoAtividade: descricaoAtividade.value,
+            codigoPython: codigoPython.value,
             codigoSala: codigoSala,
             emailProfessor: currentUserEmail,
         }
@@ -226,6 +268,7 @@ const enviarFormulario = async () => {
         // Limpar os campos após o envio
         tituloAtividade.value = '';
         descricaoAtividade.value = '';
+        codigoPython.value = '';
     }
 };
 
@@ -237,6 +280,50 @@ const carregarAtividades = async () => {
     atividades.value = querySnapshot.docs.map((doc) => {
         return doc.data();
     });
+};
+
+const enviarResposta = async () => {
+    if (currentUserEmail.includes('professor')) {
+        toast.error('Professores nao podem enviar respostas de atividades', {
+            position: 'bottom-right',
+            timeout: 4000,
+        });
+        return;
+    }
+
+    const db = getFirestore();
+    const respostaAlunoCollectionRef = collection(db, 'respostasAlunos');
+
+    const respostaAluno = {
+        tituloRespostaAluno: tituloRespostaAluno.value,
+        codigoSala: codigoSala,
+        codigoAluno: respostaAtividade.value,
+        emailAluno: currentUserEmail,
+        // add depois se precisar do nome e sobrenome do aluno
+    };
+
+    try {
+        const respostaAlunoDocRef = doc(respostaAlunoCollectionRef, tituloRespostaAluno.value);
+        await setDoc(respostaAlunoDocRef, respostaAluno);
+
+        toast.success('Resposta Enviada com Sucesso!!!', {
+            position: "bottom-right",
+            timeout: 2000,
+        });
+
+        tituloRespostaAluno.value = '';
+        respostaAtividade.value = '';
+
+    } catch (error) {
+        console.error('Erro ao enviar a reposta do aluno', error);
+
+        toast.error("Erro ao enviar a resposta. Por favor, tente novamente.", {
+            position: "bottom-right",
+            timeout: 3000,
+        });
+
+    }
+
 };
 
 // const monstrarMural = () => {
@@ -278,6 +365,16 @@ const voltar = () => {
     // router.go(-1);
     window.history.go(-1);
 };
+
+const abrirAtividade = (atividade) => {
+
+    atividade.atividadeAberta = true;
+}
+
+const fecharAtividade = (atividade) => {
+    atividade.atividadeAberta = false;
+    respostaAtividade.value = '';
+}
 
 
 onMounted(async () => {
@@ -429,6 +526,26 @@ onMounted(async () => {
     background: #8f2424;
 }
 
+.enviar-atividade-button {
+    background: #5fb013;
+    /* Cinza */
+    color: #fff;
+    /* Branco */
+    border: none;
+    padding: 4px 14px;
+    border-radius: 5px;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+.enviar-atividade-button-hover:hover {
+    background: #428a07;
+}
+
+.postar-atividade-button:hover {
+    background: #428a07;
+}
+
 .curso {
     font-size: 20px;
     margin-top: 5px;
@@ -436,10 +553,20 @@ onMounted(async () => {
 }
 
 .fixed-textarea {
-    height: 200px;
+    height: 150px;
     /* Defina a altura desejada em pixels */
     resize: none;
     /* Impede o redimensionamento do usuário */
+    margin-bottom: 10px;
+}
+
+.fixed-textarea-resposta {
+    height: 150px;
+    /* Defina a altura desejada em pixels */
+    resize: none;
+    /* Impede o redimensionamento do usuário */
+    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .fixed-textarea-titulo {
@@ -447,6 +574,13 @@ onMounted(async () => {
     resize: none;
     /* Impede o redimensionamento do usuário */
     margin-bottom: 10px;
+}
+
+.fixed-textarea-codigo {
+    height: 200px;
+    /* Defina a altura desejada em pixels */
+    resize: none;
+    /* Impede o redimensionamento do usuário */
 }
 
 .container1 {
@@ -540,6 +674,12 @@ li.aluno {
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.botao-desabilitado {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
 }
 </style>
 
