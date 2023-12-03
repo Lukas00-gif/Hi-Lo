@@ -1,25 +1,37 @@
-# server.py (Flask)
-
 from flask import Flask, request, jsonify
-from comparador import comparar_codigo
+from flask_cors import CORS
+import subprocess
+import os
 
 app = Flask(__name__)
+CORS(app, origins="http://localhost:8080") 
 
-@app.route('/enviar_resposta_atividade', methods=['POST'])
-def enviar_resposta_atividade():
-    # Receba os dados do cliente
-    data = request.json
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+    return response
 
-    # Código do professor e código do aluno
-    #basicamente vai ser assim mais tem que colocar para dar certo
-    codigo_professor = obter_codigo_professor(data.get('id_atividade'))
-    codigo_aluno = data.get('codigo_aluno')
+@app.route('/comparar-codigos', methods=['POST'])
+def comparar_codigos():
+    data = request.get_json()
+    codigo_professor = data['codigoProfessor']
+    codigo_aluno = data['codigoAluno']
 
-    # Comparar códigos
-    resultado_comparacao = comparar_codigo(codigo_professor, codigo_aluno)
+    comparador_path = os.path.join(os.path.dirname(__file__), 'comparador.py')
 
-    # Retorne o resultado para o cliente
-    return jsonify({'resultado_comparacao': resultado_comparacao})
+    try:
+        # Chama o script de comparação usando subprocess
+        resultado = subprocess.check_output(['python', comparador_path , codigo_professor, codigo_aluno], text=True)
+        # return jsonify({'resultado': resultado.strip()})
+
+        if resultado.strip().lower() == 'iguais':
+            return jsonify({'resultado' : 'Os Codigos Sao Iguais'})
+        else:
+            return jsonify({'resultado' : 'OS CODIGOS NAO SAO IGUAIS'})
+        
+    except subprocess.CalledProcessError as e:
+        return jsonify({'erro': f"Erro ao executar o comparador: {e}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

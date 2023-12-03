@@ -73,7 +73,7 @@
                         placeholder="Digite a atividade">
                     </textarea>
 
-                    <textarea v-model="codigoPython" class="form-control fixed-textarea-codigo" rows="5"
+                    <textarea v-model="codigoPythonVue" class="form-control fixed-textarea-codigo" rows="5"
                         placeholder="Digite o codigo em Python">
                     </textarea>
                 </div>
@@ -115,13 +115,16 @@ import {
     collection,
     setDoc,
     query,
-    where
+    where,
 } from 'firebase/firestore';
+import { getDatabase, ref as refs, get, set, push } from 'firebase/database';
 import { onMounted, ref } from 'vue';
 import { buscarSalaPeloCodigo } from '../utils/salas';
 import { useRoute } from 'vue-router';
 import { buscarDetalhesDoUsuarioPorEmail } from '../utils/usuarioPorEmail';
 import { useToast } from 'vue-toastification';
+
+import axios from 'axios';
 
 
 
@@ -138,7 +141,7 @@ const mostrarFormularioFlag = ref(false);
 
 const tituloAtividade = ref('');
 const descricaoAtividade = ref('');
-const codigoPython = ref('');
+const codigoPythonVue = ref('');
 const respostaAtividade = ref('');
 const tituloRespostaAluno = ref('');
 
@@ -146,6 +149,7 @@ const professor = ref({});
 const alunosNaSala = ref([]);
 const atividades = ref([]);
 const currentUserEmail = localStorage.getItem('currentUserEmail');
+
 
 const carregarPessoasNaSala = async () => {
     try {
@@ -197,7 +201,7 @@ const carregarPessoasNaSala = async () => {
 const validarFormulario = () => {
     // Lógica de validação aqui
     if (tituloAtividade.value.trim() === '' || descricaoAtividade.value.trim() === '' ||
-        codigoPython.value.trim() === '') {
+        codigoPythonVue.value.trim() === '') {
 
         // Exibir mensagem de erro (você pode usar um toast aqui)
         toast.error(' por favor preencha todos os campos', {
@@ -208,7 +212,7 @@ const validarFormulario = () => {
     }
 
     if (tituloAtividade.value.length < 10 || descricaoAtividade.value.length < 10 ||
-        codigoPython.value.length < 1) {
+        codigoPythonVue.value.length < 1) {
         // Exibir mensagem de erro (você pode usar um toast aqui)
         toast.error('Os campos devem ter no minimo 10 caracteres', {
             position: "bottom-right",
@@ -237,12 +241,13 @@ const enviarFormulario = async () => {
         // Você pode acessar o conteúdo da atividade em conteudoAtividade.value
         // Certifique-se de adicionar a lógica necessária para criar a atividade aqui
         const db = getFirestore();
+        const dbRealTime = getDatabase();
 
         const atividade = {
             // variavel para o bd : variavel do v-model d template
             tituloAtividade: tituloAtividade.value,
             descricaoAtividade: descricaoAtividade.value,
-            codigoPython: codigoPython.value,
+            codigoPython: codigoPythonVue.value,
             codigoSala: codigoSala,
             emailProfessor: currentUserEmail,
         }
@@ -253,6 +258,22 @@ const enviarFormulario = async () => {
             const atividadeColletionRef = collection(db, 'atividades');
             const atividadeDocRef = doc(atividadeColletionRef, tituloAtividade.value);
             await setDoc(atividadeDocRef, atividade);
+
+
+            const dadosAtividadesRealtimeRef = refs(dbRealTime, 'dadosAtividades');
+            const novoDadoRef = push(dadosAtividadesRealtimeRef);
+            await set(novoDadoRef, {
+                titulo: atividade.tituloAtividade,
+                codigoSala: atividade.codigoSala,
+            });
+
+            // colocar o titulo atividade e o codigo da sala no localStorage
+            // const dadosAtividadesLocalStorage = JSON.parse(localStorage.getItem('dadosAtividades')) || [];
+            // dadosAtividadesLocalStorage.push({
+            //     titulo: tituloAtividade.value,
+            //     codigoSala: codigoSala,
+            // });
+            // localStorage.setItem('dadosAtividades', JSON.stringify(dadosAtividadesLocalStorage));
 
             toast.success("Postagem Feita", {
                 position: "bottom-right",
@@ -268,9 +289,10 @@ const enviarFormulario = async () => {
         // Limpar os campos após o envio
         tituloAtividade.value = '';
         descricaoAtividade.value = '';
-        codigoPython.value = '';
+        codigoPythonVue.value = '';
     }
 };
+
 
 const carregarAtividades = async () => {
     const db = getFirestore();
@@ -299,17 +321,21 @@ const enviarResposta = async () => {
         codigoSala: codigoSala,
         codigoAluno: respostaAtividade.value,
         emailAluno: currentUserEmail,
-        // add depois se precisar do nome e sobrenome do aluno
+        // para fazer a vinculação
+        // tituloAtividade: tituloAtividade.value,
     };
 
     try {
         const respostaAlunoDocRef = doc(respostaAlunoCollectionRef, tituloRespostaAluno.value);
         await setDoc(respostaAlunoDocRef, respostaAluno);
-
+        
         toast.success('Resposta Enviada com Sucesso!!!', {
             position: "bottom-right",
             timeout: 2000,
         });
+
+        // espera para chama a funçao dentro da enviarResposta
+        await compararCodigos();
 
         tituloRespostaAluno.value = '';
         respostaAtividade.value = '';
@@ -325,6 +351,70 @@ const enviarResposta = async () => {
     }
 
 };
+
+
+
+// chamada do axios
+const compararCodigos = async () => {
+    try {
+        const dbFirestore = getFirestore();
+        const dbRealtime = getDatabase();
+
+        const dadosAtividadesRealtimeRef = refs(dbRealtime, 'dadosAtividades');
+        const dadosAtividadesSnapshot = await get(dadosAtividadesRealtimeRef);
+
+        const dadosAtividades = dadosAtividadesSnapshot.val();
+
+        if (dadosAtividades && typeof dadosAtividades === 'object') {
+            // Verifica se dadosAtividades é um objeto antes de iterar sobre ele
+            for (const atividadeKey of Object.keys(dadosAtividades)) {
+                try {
+                    const atividade = dadosAtividades[atividadeKey];
+                    const tituloAtividadeRealtime = atividade.titulo;
+                    // const codigoSalaRealtime = atividade.codigoSala;
+
+                    // Verifica se o título e o código da sala correspondem
+                    if (tituloAtividadeRealtime === tituloAtividade.value) {
+                        const idDoDocumentoFirestore = tituloAtividade.value;
+
+                        // Usando idDoDocumentoFirestore diretamente na criação da referência
+                        const codigoDocRef = doc(dbFirestore, 'atividades', idDoDocumentoFirestore);
+                        const codigoDocSnapshot = await getDoc(codigoDocRef);
+
+                        if (codigoDocSnapshot.exists()) {
+                            // Obtenha o códigoPython do documento no Firestore
+                            const codigoPythonFirebase = codigoDocSnapshot.data().codigoPython;
+
+                            // Faça a comparação de códigos aqui
+                            const response = await axios.post('http://127.0.0.1:5000/comparar-codigos', {
+                                // idDoDocumentoFirestore: idDoDocumentoFirestore,
+                                codigoProfessor: codigoPythonFirebase,
+                                codigoAluno: respostaAtividade.value,
+                            });
+
+                            console.log(response.data.resultado);
+                        } else {
+                            console.error('Nenhuma atividade encontrada para o ID:', idDoDocumentoFirestore);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao acessar o Firestore:', error);
+                }
+            }
+        } else {
+            console.error('Nenhum dado encontrado ou o dado não é um objeto no Realtime Database');
+        }
+
+    } catch (error) {
+        console.error('DEU ERRO NA COMPARAÇÃO BOY', error);
+        // Trate o erro
+    }
+};
+
+
+
+
+
 
 // const monstrarMural = () => {
 //     mostrarMuralFlag.value = false;
