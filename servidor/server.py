@@ -2,9 +2,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import subprocess
 import os
+import re
 
 app = Flask(__name__)
-CORS(app, origins="http://localhost:8080") 
+CORS(app, origins="http://localhost:8080")
 
 @app.after_request
 def after_request(response):
@@ -15,23 +16,36 @@ def after_request(response):
 @app.route('/comparar-codigos', methods=['POST'])
 def comparar_codigos():
     data = request.get_json()
-    codigo_professor = data['codigoProfessor']
+    codigo_professor = data['saidaEsperadaProfessor']
     codigo_aluno = data['codigoAluno']
 
-    comparador_path = os.path.join(os.path.dirname(__file__), 'comparador.py')
+    print('1 - codigo vindo do professor: ', codigo_professor)
+    print('2 - codigo vindo do aluno: ', codigo_aluno)
 
+    # Salve o código do aluno em um arquivo temporário
+    aluno_file_path = "aluno_codigo.py"
+    with open(aluno_file_path, 'w') as file:
+        file.write(codigo_aluno)
+
+    # Chame o script do aluno usando subprocess para executar o código
     try:
-        # Chama o script de comparação usando subprocess
-        resultado = subprocess.check_output(['python', comparador_path , codigo_professor, codigo_aluno], text=True)
-        # return jsonify({'resultado': resultado.strip()})
+        resultado_aluno = subprocess.check_output(['python', aluno_file_path], text=True)
+        resultado_aluno = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', resultado_aluno)  # Remove caracteres de controle
+        print('3 - codigo vindo do resultado do subprocess:',resultado_aluno)
+        print('---------------------------------------------------------------')
 
-        if resultado.strip().lower() == 'iguais':
-            return jsonify({'resultado' : 'Os Codigos Sao Iguais'})
+        # Faça a comparação dos resultados
+        if resultado_aluno == codigo_professor:
+            return jsonify({'resultado': 'Os Códigos São Iguais'})
         else:
-            return jsonify({'resultado' : 'OS CODIGOS NAO SAO IGUAIS'})
-        
+            return jsonify({'resultado': 'Os Códigos NAO são Iguais'})
+
     except subprocess.CalledProcessError as e:
-        return jsonify({'erro': f"Erro ao executar o comparador: {e}"}), 500
+        return jsonify({'erro': f"Erro ao executar o código do aluno: {e}"}), 500
+
+    finally:
+        # Exclua o arquivo temporário do aluno após a execução
+        os.remove(aluno_file_path)
 
 if __name__ == '__main__':
     app.run(debug=True)

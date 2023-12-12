@@ -25,7 +25,9 @@
             <h1>Mural de Atividades</h1>
             <div v-for="(atividade, index) in atividades" :key="index" class="atividade-container">
                 <div class="atividade-titulo">{{ atividade.tituloAtividade }}</div>
-                <div class="atividade-descricao">{{ atividade.descricaoAtividade }}</div>
+                <div class="atividade-descricao" v-html="atividade.descricaoAtividade"></div>
+                <p><strong>Saida: </strong></p>
+                <div class="atividade-saida" v-html="atividade.saidaEsperadaProfessor"></div>
 
                 <!-- Adiciona a classe 'atividade-aberta' se atividadeAberta for true -->
                 <button class="responder-button" @click="abrirAtividade(atividade)" v-show="!atividade.atividadeAberta">
@@ -70,11 +72,11 @@
                     </textarea>
 
                     <textarea v-model="descricaoAtividade" class="form-control fixed-textarea" rows="5"
-                        placeholder="Digite a atividade">
+                        placeholder="Descreva o que e para fazer na Atividade">
                     </textarea>
 
-                    <textarea v-model="codigoPythonVue" class="form-control fixed-textarea-codigo" rows="5"
-                        placeholder="Digite o codigo em Python">
+                    <textarea v-model="saidaEsperada" class="form-control fixed-textarea-codigo" rows="5"
+                        placeholder="Digite a Saida do codigo Esperada para a Questão...">
                     </textarea>
                 </div>
                 <div class="form-group-button">
@@ -141,7 +143,7 @@ const mostrarFormularioFlag = ref(false);
 
 const tituloAtividade = ref('');
 const descricaoAtividade = ref('');
-const codigoPythonVue = ref('');
+const saidaEsperada = ref('');
 const respostaAtividade = ref('');
 const tituloRespostaAluno = ref('');
 
@@ -149,6 +151,7 @@ const professor = ref({});
 const alunosNaSala = ref([]);
 const atividades = ref([]);
 const currentUserEmail = localStorage.getItem('currentUserEmail');
+const { v4: uuidv4 } = require('uuid');
 
 
 const carregarPessoasNaSala = async () => {
@@ -201,7 +204,7 @@ const carregarPessoasNaSala = async () => {
 const validarFormulario = () => {
     // Lógica de validação aqui
     if (tituloAtividade.value.trim() === '' || descricaoAtividade.value.trim() === '' ||
-        codigoPythonVue.value.trim() === '') {
+        saidaEsperada.value.trim() === '') {
 
         // Exibir mensagem de erro (você pode usar um toast aqui)
         toast.error(' por favor preencha todos os campos', {
@@ -212,7 +215,7 @@ const validarFormulario = () => {
     }
 
     if (tituloAtividade.value.length < 10 || descricaoAtividade.value.length < 10 ||
-        codigoPythonVue.value.length < 1) {
+        saidaEsperada.value.length < 1) {
         // Exibir mensagem de erro (você pode usar um toast aqui)
         toast.error('Os campos devem ter no minimo 10 caracteres', {
             position: "bottom-right",
@@ -236,60 +239,52 @@ const validarFormulario = () => {
 //ve a verificaçao e se for true ele entrar dentro para fazer a postagem
 const enviarFormulario = async () => {
     if (validarFormulario()) {
-
-        // Lógica para criar a atividade
-        // Você pode acessar o conteúdo da atividade em conteudoAtividade.value
-        // Certifique-se de adicionar a lógica necessária para criar a atividade aqui
-        const db = getFirestore();
+        const dbFirestore = getFirestore();
         const dbRealTime = getDatabase();
+        const codigoUnico = uuidv4();
 
-        const atividade = {
-            // variavel para o bd : variavel do v-model d template
+        const saidaEsperadaComQuebradeLinha = saidaEsperada.value.replace(/\n/g, '<br>');
+        const descricaoAtividadeComQuebradeLinha = descricaoAtividade.value.replace(/\n/g, '<br>');
+
+        const atividadeColletionRef = collection(dbFirestore, 'atividades');
+        const atividadeDocRef = doc(atividadeColletionRef, codigoUnico);
+
+        const atividadeData = {
             tituloAtividade: tituloAtividade.value,
-            descricaoAtividade: descricaoAtividade.value,
-            codigoPython: codigoPythonVue.value,
+            descricaoAtividade: descricaoAtividadeComQuebradeLinha,
+            saidaEsperadaProfessor: saidaEsperadaComQuebradeLinha,
             codigoSala: codigoSala,
             emailProfessor: currentUserEmail,
-        }
+            codigoUnico: codigoUnico,
+        };
 
         try {
-            // add a coleçao atividadeees com o codigo sendo o documento e a variavel atitivade
-            // com outras variaveis
-            const atividadeColletionRef = collection(db, 'atividades');
-            const atividadeDocRef = doc(atividadeColletionRef, tituloAtividade.value);
-            await setDoc(atividadeDocRef, atividade);
+            await setDoc(atividadeDocRef, atividadeData);
 
-
-            const dadosAtividadesRealtimeRef = refs(dbRealTime, 'dadosAtividades');
-            const novoDadoRef = push(dadosAtividadesRealtimeRef);
-            await set(novoDadoRef, {
-                titulo: atividade.tituloAtividade,
-                codigoSala: atividade.codigoSala,
+            // Certifique-se de que todos os dados necessários estão presentes
+            const dadosAtividadesRef = refs(dbRealTime, 'atividades', tituloAtividade.value);
+            await set(dadosAtividadesRef, {
+                codigoSala: atividadeData.codigoSala,
+                tituloAtividade: tituloAtividade.value,
+                idAtividade: atividadeDocRef.id,
             });
-
-            // colocar o titulo atividade e o codigo da sala no localStorage
-            // const dadosAtividadesLocalStorage = JSON.parse(localStorage.getItem('dadosAtividades')) || [];
-            // dadosAtividadesLocalStorage.push({
-            //     titulo: tituloAtividade.value,
-            //     codigoSala: codigoSala,
-            // });
-            // localStorage.setItem('dadosAtividades', JSON.stringify(dadosAtividadesLocalStorage));
 
             toast.success("Postagem Feita", {
                 position: "bottom-right",
                 timeout: 2000,
             });
-
-            // colocar o toast depois
         } catch (error) {
-            alert('NAO DEU CERTO, BOY')
-            console.log('erro ao add a atividade', error)
+            console.error('Erro ao adicionar a atividade', error);
+            toast.error("Erro ao adicionar a atividade. Por favor, tente novamente.", {
+                position: "bottom-right",
+                timeout: 3000,
+            });
         }
 
         // Limpar os campos após o envio
         tituloAtividade.value = '';
         descricaoAtividade.value = '';
-        codigoPythonVue.value = '';
+        saidaEsperada.value = '';
     }
 };
 
@@ -304,9 +299,11 @@ const carregarAtividades = async () => {
     });
 };
 
+
+
 const enviarResposta = async () => {
     if (currentUserEmail.includes('professor')) {
-        toast.error('Professores nao podem enviar respostas de atividades', {
+        toast.error('Professores não podem enviar respostas de atividades', {
             position: 'bottom-right',
             timeout: 4000,
         });
@@ -316,104 +313,126 @@ const enviarResposta = async () => {
     const db = getFirestore();
     const respostaAlunoCollectionRef = collection(db, 'respostasAlunos');
 
+    // Obtenha o idAtividade a partir do Realtime Database
+    const idAtividade = await getIDAtividade(tituloAtividade.value);
+
+    // Verifica se o idAtividade é válido antes de prosseguir
+    if (!idAtividade) {
+        console.error('ID da Atividade não é válido.');
+        return;
+    }
+
     const respostaAluno = {
         tituloRespostaAluno: tituloRespostaAluno.value,
         codigoSala: codigoSala,
         codigoAluno: respostaAtividade.value,
         emailAluno: currentUserEmail,
-        // para fazer a vinculação
-        // tituloAtividade: tituloAtividade.value,
+        codigoUnicoAtividade: idAtividade,
     };
 
     try {
-        const respostaAlunoDocRef = doc(respostaAlunoCollectionRef, tituloRespostaAluno.value);
+        // Use idAtividade como o ID do Documento
+        const respostaAlunoDocRef = doc(respostaAlunoCollectionRef, idAtividade);
         await setDoc(respostaAlunoDocRef, respostaAluno);
-        
+
         toast.success('Resposta Enviada com Sucesso!!!', {
-            position: "bottom-right",
+            position: 'bottom-right',
             timeout: 2000,
         });
 
-        // espera para chama a funçao dentro da enviarResposta
-        await compararCodigos();
+        // chama o compararCodigos 
+        compararCodigos(idAtividade);
 
         tituloRespostaAluno.value = '';
         respostaAtividade.value = '';
 
     } catch (error) {
-        console.error('Erro ao enviar a reposta do aluno', error);
+        console.error('Erro ao enviar a resposta do aluno', error);
 
-        toast.error("Erro ao enviar a resposta. Por favor, tente novamente.", {
-            position: "bottom-right",
+        toast.error('Erro ao enviar a resposta. Por favor, tente novamente.', {
+            position: 'bottom-right',
             timeout: 3000,
         });
-
     }
-
 };
-
 
 
 // chamada do axios
-const compararCodigos = async () => {
+// Modifique a assinatura da função compararCodigos para receber a atividadeKey
+const compararCodigos = async (idAtividade) => {
     try {
         const dbFirestore = getFirestore();
-        const dbRealtime = getDatabase();
 
-        const dadosAtividadesRealtimeRef = refs(dbRealtime, 'dadosAtividades');
-        const dadosAtividadesSnapshot = await get(dadosAtividadesRealtimeRef);
+        // Consulta no Firestore para a coleção 'atividades'
+        const firestoreQuery = query(collection(dbFirestore, 'atividades'), where('codigoSala', '==', codigoSala));
+        const querySnapshot = await getDocs(firestoreQuery);
 
-        const dadosAtividades = dadosAtividadesSnapshot.val();
+        // Verifica se há documentos retornados pela consulta
+        if (querySnapshot.docs.length > 0) {
+            const atividadeSnapshot = querySnapshot.docs[0]; // Pegue o primeiro documento da consulta
+            console.log('ID do Documento Firestore atividade:', atividadeSnapshot.id);
 
-        if (dadosAtividades && typeof dadosAtividades === 'object') {
-            // Verifica se dadosAtividades é um objeto antes de iterar sobre ele
-            for (const atividadeKey of Object.keys(dadosAtividades)) {
-                try {
-                    const atividade = dadosAtividades[atividadeKey];
-                    const tituloAtividadeRealtime = atividade.titulo;
-                    // const codigoSalaRealtime = atividade.codigoSala;
+            // Consulta no Firestore para a coleção 'respostasAlunos'
+            const respostaAlunoRef = doc(dbFirestore, 'respostasAlunos', idAtividade);
+            const respostaAlunoSnapshot = await getDoc(respostaAlunoRef);
 
-                    // Verifica se o título e o código da sala correspondem
-                    if (tituloAtividadeRealtime === tituloAtividade.value) {
-                        const idDoDocumentoFirestore = tituloAtividade.value;
+            if (respostaAlunoSnapshot.exists()) {
+                console.log('Documento no Firestore respostasAlunos Encontrado');
 
-                        // Usando idDoDocumentoFirestore diretamente na criação da referência
-                        const codigoDocRef = doc(dbFirestore, 'atividades', idDoDocumentoFirestore);
-                        const codigoDocSnapshot = await getDoc(codigoDocRef);
+                // Obtenha o códigoPython do documento respostasAlunos
+                const respostaAlunoValue = respostaAlunoSnapshot.data().codigoAluno;
 
-                        if (codigoDocSnapshot.exists()) {
-                            // Obtenha o códigoPython do documento no Firestore
-                            const codigoPythonFirebase = codigoDocSnapshot.data().codigoPython;
+                // Compare os IDs dos documentos e, se forem iguais, envie para o servidor
+                if (atividadeSnapshot.id === idAtividade) {
+                    const saidaEsperadaFirebase = atividadeSnapshot.data().saidaEsperadaProfessor;
 
-                            // Faça a comparação de códigos aqui
-                            const response = await axios.post('http://127.0.0.1:5000/comparar-codigos', {
-                                // idDoDocumentoFirestore: idDoDocumentoFirestore,
-                                codigoProfessor: codigoPythonFirebase,
-                                codigoAluno: respostaAtividade.value,
-                            });
+                    // tira a tag 
+                    const parser = new DOMParser();
+                    const htmlElement = parser.parseFromString(saidaEsperadaFirebase, 'text/html');
+                    const saidaEsperadaFirebaseSemTag = htmlElement.body.textContent || "";
 
-                            console.log(response.data.resultado);
-                        } else {
-                            console.error('Nenhuma atividade encontrada para o ID:', idDoDocumentoFirestore);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Erro ao acessar o Firestore:', error);
+                    console.log('Saida esperada feita pelo professor:', saidaEsperadaFirebaseSemTag);
+
+                    const response = await axios.post('http://127.0.0.1:5000/comparar-codigos', {
+                        saidaEsperadaProfessor: saidaEsperadaFirebaseSemTag,
+                        codigoAluno: respostaAlunoValue,
+                    });
+
+                    console.log('Resposta do Servidor:', response.data.resultado);
+                } else {
+                    console.error('IDs dos documentos não correspondem');
                 }
+            } else {
+                console.error('Nenhuma respostaAluno encontrada para o ID:', idAtividade);
             }
         } else {
-            console.error('Nenhum dado encontrado ou o dado não é um objeto no Realtime Database');
+            console.error('Nenhuma atividade encontrada para o ID:', idAtividade);
         }
-
     } catch (error) {
-        console.error('DEU ERRO NA COMPARAÇÃO BOY', error);
-        // Trate o erro
+        console.error('Erro ao acessar o Firestore:', error);
     }
 };
 
 
+const getIDAtividade = async (tituloAtividade) => {
+    const dbRealTime = getDatabase();
 
+    try {
+        const atividadeRef = refs(dbRealTime, 'atividades', tituloAtividade, 'idAtividade');
+        const atividadeSnapshot = await get(atividadeRef);
 
+        if (atividadeSnapshot.exists()) {
+            console.log('ID da Atividade:', atividadeSnapshot.val());
+            return atividadeSnapshot.val().idAtividade;
+        } else {
+            console.error('Atividade não encontrada.');
+            return null;
+        }
+    } catch (error) {
+        console.error('Erro ao obter o ID da Atividade:', error);
+        throw error;
+    }
+};
 
 
 // const monstrarMural = () => {
@@ -667,7 +686,7 @@ onMounted(async () => {
 }
 
 .fixed-textarea-codigo {
-    height: 200px;
+    height: 150px;
     /* Defina a altura desejada em pixels */
     resize: none;
     /* Impede o redimensionamento do usuário */
@@ -754,6 +773,10 @@ li.aluno {
 
 .atividade-descricao {
     font-size: 16px;
+    margin-bottom: px;
+}
+
+.atividade-saida{
     margin-bottom: 10px;
 }
 
