@@ -118,6 +118,7 @@ import {
     setDoc,
     query,
     where,
+    addDoc
 } from 'firebase/firestore';
 import { getDatabase, ref as refs, get, set, push } from 'firebase/database';
 import { onMounted, ref } from 'vue';
@@ -262,12 +263,22 @@ const enviarFormulario = async () => {
             await setDoc(atividadeDocRef, atividadeData);
 
             // Certifique-se de que todos os dados necessários estão presentes
-            const dadosAtividadesRef = refs(dbRealTime, 'atividades', tituloAtividade.value);
-            await set(dadosAtividadesRef, {
-                codigoSala: atividadeData.codigoSala,
+            // const dadosAtividadesRef = refs(dbRealTime, 'atividades', tituloAtividade.value);
+            // await set(dadosAtividadesRef, {
+            //     codigoSala: atividadeData.codigoSala,
+            //     tituloAtividade: tituloAtividade.value,
+            //     idAtividade: atividadeDocRef.id,
+            // });
+
+            const atividadesRef = refs(dbRealTime, 'dadosAtividades', tituloAtividade);
+            const atividadeRealtimeData = {
                 tituloAtividade: tituloAtividade.value,
+                codigoSala: codigoSala,
                 idAtividade: atividadeDocRef.id,
-            });
+            };
+
+            await push(atividadesRef, atividadeRealtimeData);
+
 
             toast.success("Postagem Feita", {
                 position: "bottom-right",
@@ -300,7 +311,6 @@ const carregarAtividades = async () => {
 };
 
 
-
 const enviarResposta = async () => {
     if (currentUserEmail.includes('professor')) {
         toast.error('Professores não podem enviar respostas de atividades', {
@@ -314,11 +324,18 @@ const enviarResposta = async () => {
     const respostaAlunoCollectionRef = collection(db, 'respostasAlunos');
 
     // Obtenha o idAtividade a partir do Realtime Database
-    const idAtividade = await getIDAtividade(tituloAtividade.value);
+    const idAtividadeFirestore = await getCodigoUnicoAtividade();
+
+    const idAtividadeRealtime = await getIDAtividade(idAtividadeFirestore);
 
     // Verifica se o idAtividade é válido antes de prosseguir
-    if (!idAtividade) {
-        console.error('ID da Atividade não é válido.');
+    if (!idAtividadeRealtime) {
+        console.error('ID da Atividade não é válido REALTIME.');
+        return;
+    }
+
+    if (!idAtividadeFirestore) {
+        console.error('ID da Atividade não é válido FIRESTORE.');
         return;
     }
 
@@ -327,12 +344,12 @@ const enviarResposta = async () => {
         codigoSala: codigoSala,
         codigoAluno: respostaAtividade.value,
         emailAluno: currentUserEmail,
-        codigoUnicoAtividade: idAtividade,
+        codigoUnicoAtividade: idAtividadeRealtime,
     };
 
     try {
         // Use idAtividade como o ID do Documento
-        const respostaAlunoDocRef = doc(respostaAlunoCollectionRef, idAtividade);
+        const respostaAlunoDocRef = doc(respostaAlunoCollectionRef, idAtividadeRealtime);
         await setDoc(respostaAlunoDocRef, respostaAluno);
 
         toast.success('Resposta Enviada com Sucesso!!!', {
@@ -341,7 +358,7 @@ const enviarResposta = async () => {
         });
 
         // chama o compararCodigos 
-        compararCodigos(idAtividade);
+        compararCodigos(idAtividadeRealtime);
 
         tituloRespostaAluno.value = '';
         respostaAtividade.value = '';
@@ -414,22 +431,69 @@ const compararCodigos = async (idAtividade) => {
 };
 
 
-const getIDAtividade = async (tituloAtividade) => {
+// pega o id do realtime database que esta armazenado la
+// Função para obter o ID da atividade do Realtime Database percorrendo os nós
+const getIDAtividade = async (idAtividade) => {
     const dbRealTime = getDatabase();
 
     try {
-        const atividadeRef = refs(dbRealTime, 'atividades', tituloAtividade, 'idAtividade');
-        const atividadeSnapshot = await get(atividadeRef);
+        const atividadesRef = refs(dbRealTime, 'dadosAtividades');
+        const atividadesSnapshot = await get(atividadesRef);
 
-        if (atividadeSnapshot.exists()) {
-            console.log('ID da Atividade:', atividadeSnapshot.val());
-            return atividadeSnapshot.val().idAtividade;
+        if (atividadesSnapshot.exists()) {
+            console.log('atividade snapshot EXISTE', atividadesSnapshot);
+            const atividadesData = atividadesSnapshot.val();
+
+            for (const idAtividadeRealtime in atividadesData) {
+                console.log('dentro do loop, idAtividadeRealtime', idAtividadeRealtime);
+                const atividade = atividadesData[idAtividadeRealtime];
+                console.log('atividade aqui', atividade);
+
+                console.log('o que tem no idAtividade?', idAtividade);
+
+                console.log('o que tem no atividade.idAtividade?', atividade.idAtividade);
+
+                if (atividade.idAtividade === idAtividade) {
+                    return atividade.idAtividade;
+                }
+            }
+
+            console.error('Nenhuma correspondência encontrada para o ID da Atividade:', idAtividade);
+            return null;
+
         } else {
-            console.error('Atividade não encontrada.');
+            console.error('Nenhuma atividade encontrada no Realtime Database.');
             return null;
         }
     } catch (error) {
-        console.error('Erro ao obter o ID da Atividade:', error);
+        console.error('Erro ao obter o ID da Atividade do Realtime Database:', error);
+        throw error;
+    }
+};
+
+
+
+// pega o id do documento atividades do firestore
+const getCodigoUnicoAtividade = async () => {
+    const dbFirestore = getFirestore();
+
+    try {
+        const atividadesRef = collection(dbFirestore, 'atividades');
+        const atividadesSnapshot = await getDocs(atividadesRef);
+
+        if (atividadesSnapshot.size > 0) {
+            // vai pegar o primeiro da lista do firestore
+            const ultimaAtividade = atividadesSnapshot.docs[0];
+            console.log('ultima atividade', ultimaAtividade);
+            const atividadeData = ultimaAtividade.data();
+            console.log('atividade Data', atividadeData);
+            return atividadeData.codigoUnico;
+        } else {
+            console.error('Nenhuma atividade encontrada no Firestore.');
+            return null;
+        }
+    } catch (error) {
+        console.error('Erro ao obter o Código Único da Atividade do Firestore:', error);
         throw error;
     }
 };
@@ -776,7 +840,7 @@ li.aluno {
     margin-bottom: px;
 }
 
-.atividade-saida{
+.atividade-saida {
     margin-bottom: 10px;
 }
 
