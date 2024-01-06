@@ -34,6 +34,12 @@
                     Abrir Atividade
                 </button>
 
+                <div v-if="mostrarMensagem" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
+                    {{ mensagemResultado }}
+                </div>
+
+
+
                 <!-- Textarea e botões adicionais -->
                 <div v-show="atividade.atividadeAberta">
                     <textarea v-model="tituloRespostaAluno" class="form-control fixed-textarea-titulo" rows="3"
@@ -118,14 +124,14 @@ import {
     setDoc,
     query,
     where,
-    addDoc
 } from 'firebase/firestore';
-import { getDatabase, ref as refs, get, set, push } from 'firebase/database';
+import { getDatabase, ref as refs, get, update, push, set } from 'firebase/database';
 import { onMounted, ref } from 'vue';
 import { buscarSalaPeloCodigo } from '../utils/salas';
 import { useRoute } from 'vue-router';
 import { buscarDetalhesDoUsuarioPorEmail } from '../utils/usuarioPorEmail';
 import { useToast } from 'vue-toastification';
+import store from '../state/store';
 
 import axios from 'axios';
 
@@ -141,7 +147,13 @@ const mostrarPessoasFlag = ref(false);
 const mostrarAtividadesFlag = ref(false);
 const mostrarMuralFlag = ref(true);
 const mostrarFormularioFlag = ref(false);
+const respostaCorreta = ref(false);
+const atividadeRespondida = ref(false);
+const mostrarMensagem = ref(false);
+const respostaSalva = ref(false);
+const idAtividadeRealtimeGlobal = ref(null);
 
+const mensagemResultado = ref('');
 const tituloAtividade = ref('');
 const descricaoAtividade = ref('');
 const saidaEsperada = ref('');
@@ -151,6 +163,8 @@ const tituloRespostaAluno = ref('');
 const professor = ref({});
 const alunosNaSala = ref([]);
 const atividades = ref([]);
+const atividade = ref([]);
+const respostasAtividades = ref([]);
 const currentUserEmail = localStorage.getItem('currentUserEmail');
 const { v4: uuidv4 } = require('uuid');
 
@@ -262,14 +276,6 @@ const enviarFormulario = async () => {
         try {
             await setDoc(atividadeDocRef, atividadeData);
 
-            // Certifique-se de que todos os dados necessários estão presentes
-            // const dadosAtividadesRef = refs(dbRealTime, 'atividades', tituloAtividade.value);
-            // await set(dadosAtividadesRef, {
-            //     codigoSala: atividadeData.codigoSala,
-            //     tituloAtividade: tituloAtividade.value,
-            //     idAtividade: atividadeDocRef.id,
-            // });
-
             const atividadesRef = refs(dbRealTime, 'dadosAtividades', tituloAtividade);
             const atividadeRealtimeData = {
                 tituloAtividade: tituloAtividade.value,
@@ -279,6 +285,33 @@ const enviarFormulario = async () => {
 
             await push(atividadesRef, atividadeRealtimeData);
 
+            // criar um novo nó no realtime database
+            const variaveisAtividadesRef = refs(dbRealTime, `variaveisAtividades/${atividadeDocRef.id}`);
+            const variaveisAtividadesData = {
+                respondida: false,
+                correta: false,
+                mensagem: "",
+            }
+
+            await push(variaveisAtividadesRef, variaveisAtividadesData);
+
+            // Obtém o array de atividades do localStorage
+            // const atividadesLocalStorage = JSON.parse(localStorage.getItem('atividades')) || {};
+
+            // Converte as chaves para strings (opcional)
+            // const atividadesLocalStorageStringKeys = Object.fromEntries(
+            //     Object.entries(atividadesLocalStorage).map(([key, value]) => [String(key), value])
+            // );
+
+            // atividadesLocalStorageStringKeys[atividadeDocRef.id] = {
+            //     respondida: false,
+            //     correta: false,
+            //     mensagem: '',
+            // };
+
+            // localStorage.setItem('atividades', JSON.stringify(atividadesLocalStorageStringKeys));
+
+            // Adiciona a nova atividade ao estado Vuex
 
             toast.success("Postagem Feita", {
                 position: "bottom-right",
@@ -320,6 +353,7 @@ const enviarResposta = async () => {
         return;
     }
 
+
     const db = getFirestore();
     const respostaAlunoCollectionRef = collection(db, 'respostasAlunos');
 
@@ -327,6 +361,9 @@ const enviarResposta = async () => {
     const idAtividadeFirestore = await getCodigoUnicoAtividade();
 
     const idAtividadeRealtime = await getIDAtividade(idAtividadeFirestore);
+
+    // do realtime para o localstorage
+    idAtividadeRealtimeGlobal.value = await getIDAtividade(idAtividadeFirestore);
 
     // Verifica se o idAtividade é válido antes de prosseguir
     if (!idAtividadeRealtime) {
@@ -339,6 +376,15 @@ const enviarResposta = async () => {
         return;
     }
 
+    // Verifica se a atividade já foi respondida anteriormente
+    if (atividadeRespondida.value) {
+        toast.warning('Só é permitido responder à atividade apenas 1 vez!', {
+            position: 'bottom-right',
+            timeout: 4000,
+        });
+        return;
+    }
+
     const respostaAluno = {
         tituloRespostaAluno: tituloRespostaAluno.value,
         codigoSala: codigoSala,
@@ -348,6 +394,7 @@ const enviarResposta = async () => {
     };
 
     try {
+        
         // Use idAtividade como o ID do Documento
         const respostaAlunoDocRef = doc(respostaAlunoCollectionRef, idAtividadeRealtime);
         await setDoc(respostaAlunoDocRef, respostaAluno);
@@ -357,8 +404,21 @@ const enviarResposta = async () => {
             timeout: 2000,
         });
 
-        // chama o compararCodigos 
-        compararCodigos(idAtividadeRealtime);
+        // atividadeRespondida.value = true;
+        // // manda para o vuex com as informaçoes, com o nome marcarAtividadesRespondidas
+        // store.dispatch('marcarAtividadeRespondida', idAtividadeRealtime, respostaCorreta, mensagemResultado.value);
+
+        // store.dispatch('marcarAtividadeRespondida', {
+        //     idAtividade: idAtividadeRealtime,
+        //     respondida: true,
+        //     correta: true,
+        //     mensagem: '',
+        // });
+
+
+        // await atualizarRespostaNoRealtime(idAtividadeRealtime, true, true, 'Sua mensagem de acerto ou erro aqui');
+
+        await compararCodigos(idAtividadeRealtime);
 
         tituloRespostaAluno.value = '';
         respostaAtividade.value = '';
@@ -371,7 +431,9 @@ const enviarResposta = async () => {
             timeout: 3000,
         });
     }
+
 };
+
 
 
 // chamada do axios
@@ -415,7 +477,68 @@ const compararCodigos = async (idAtividade) => {
                         codigoAluno: respostaAlunoValue,
                     });
 
-                    console.log('Resposta do Servidor:', response.data.resultado);
+                    console.log(response.data.resultado)
+
+                    // const respostaServidor = response.data.resultado;
+
+                    // respostaCorreta.value = respostaServidor === 'Os Códigos São Iguais';
+                    // mensagemServidor.value = respostaServidor;
+
+                    // // Ajuste a lógica para verificar se a resposta é correta ou não
+                    // mensagemResultado.value = respostaCorreta.value ? 'Você acertou!' : 'Você errou!';
+
+                    const respostaServidor = response.data.resultado;
+
+                    // Agora, você pode atualizar o Realtime Database com as novas informações
+                    const dbRealtime = getDatabase();
+                    const atividadesRef = refs(dbRealtime, `variaveisAtividades/${idAtividade}`);
+                    await set(atividadesRef, {
+                        respondida: true,
+                        correta: respostaServidor === 'Os Códigos São Iguais',
+                        mensagem: respostaServidor === 'Os Códigos São Iguais' ? 'Você acertou!' : 'Você errou!',
+                    }, { merge: true });
+
+
+                    // const respostaServidor = response.data.resultado;
+
+                    const respostasAtividades = JSON.parse(localStorage.getItem('respostasAtividades')) || [];
+                    const index = respostasAtividades.findIndex(resposta => resposta.idAtividade === idAtividade);
+
+                    if (index !== -1) {
+                        respostasAtividades[index] = {
+                            idAtividade,
+                            respondida: true,
+                            correta: respostaServidor === 'Os Códigos São Iguais',
+                            mensagem: respostaServidor === 'Os Códigos São Iguais' ? 'Você acertou!' : 'Você errou!',
+                        };
+                    } else {
+                        respostasAtividades.push({
+                            idAtividade,
+                            respondida: true,
+                            correta: respostaServidor === 'Os Códigos São Iguais',
+                            mensagem: respostaServidor === 'Os Códigos São Iguais' ? 'Você acertou!' : 'Você errou!',
+                        });
+                    }
+
+                    localStorage.setItem('respostasAtividades', JSON.stringify(respostasAtividades));
+
+                    mensagemResultado.value = respostaServidor === 'Os Códigos São Iguais' ? 'Você acertou!' : 'Você errou!';
+                    mostrarMensagem.value = true;
+
+
+
+                    // const respostasAtividades = JSON.parse(localStorage.getItem('respostasAtividades')) || [];
+
+                    // respostasAtividades.push({
+                    //     idAtividade,
+                    //     respondida: true,
+                    //     correta: respostaServidor === 'Os Códigos São Iguais',
+                    //     mensagem: respostaServidor === 'Os Códigos São Iguais' ? 'Você acertou!' : 'Você errou!',
+                    // });
+
+                    // localStorage.setItem('respostasAtividades', JSON.stringify(respostasAtividades));
+
+
                 } else {
                     console.error('IDs dos documentos não correspondem');
                 }
@@ -471,8 +594,6 @@ const getIDAtividade = async (idAtividade) => {
     }
 };
 
-
-
 // pega o id do documento atividades do firestore
 const getCodigoUnicoAtividade = async () => {
     const dbFirestore = getFirestore();
@@ -497,6 +618,27 @@ const getCodigoUnicoAtividade = async () => {
         throw error;
     }
 };
+
+
+const carregarEstadoAtividade = async (idAtividade) => {
+    const respostasAtividadesString = localStorage.getItem('respostasAtividades');
+
+    // Converta a string JSON para um array
+    const respostasAtividades = JSON.parse(respostasAtividadesString) || [];
+
+    // Encontre a resposta no array
+    const resposta = respostasAtividades.find(resposta => resposta?.idAtividade === idAtividade);
+
+    if (resposta) {
+        // Retorna a mensagem associada à idAtividade
+        console.log('resposta.mensagem', resposta.mensagem);
+        return resposta.mensagem;
+    } else {
+        // Se não encontrar a resposta, retorna null ou uma mensagem padrão, conforme necessário
+        return null;
+    }
+};
+
 
 
 // const monstrarMural = () => {
@@ -558,10 +700,73 @@ onMounted(async () => {
         // aki ele vai montar na hora que ele entrar no compomente, e carrega-lo
         carregarAtividades();
 
+        const idAtividadeFirestore = await getCodigoUnicoAtividade();
+        idAtividadeRealtimeGlobal.value = await getIDAtividade(idAtividadeFirestore);
+        console.log('idatividadeRealtimeGlobal onMouted', idAtividadeRealtimeGlobal);
+
+        const respostasAtividades = JSON.parse(localStorage.getItem('respostasAtividades')) || [];
+        console.log('respostasatividades', respostasAtividades);
+
+        const resposta = respostasAtividades.find(resposta => resposta.idAtividade === idAtividadeRealtimeGlobal.value);
+        console.log('resposta', resposta);
+
+        if (resposta) {
+            respostaCorreta.value = resposta.correta;
+            mensagemResultado.value = resposta.mensagem;
+            atividadeRespondida.value = resposta.respondida;
+            mostrarMensagem.value = true;
+        } else {
+            mostrarMensagem.value = false;
+        }
+
+
+
+        // await carregarEstadoAtividade(idAtividadeRealtimeGlobal);
+
+        // const respostasAtividades = JSON.parse(localStorage.getItem('respostasAtividades')) || [];
+        // console.log('RESPOSTAS ATIVIDADES LOCALSTORAGE', respostasAtividades);
+
+        // respostasAtividades.forEach(resposta => {
+        //     if (resposta.idAtividade === idAtividadeRealtimeGlobal.value) {
+        //         console.log('DENTRO DA RESPOSTA.IDATIVIDADE', resposta.idAtividade);
+
+        //         atividade.respondida = resposta.respondida;
+        //         atividade.correta = resposta.correta;
+        //         atividade.mensagem = resposta.mensagem;
+        //     }
+        // });
+
+
+
+        // const atividadeLocalStorage = localStorage.getItem('atividades');
+        // console.log('atividadeLocalStorage', atividadeLocalStorage);
+        // if (atividadeLocalStorage) {
+        //     const atividades = JSON.parse(atividadeLocalStorage);
+        //     console.log('atividades', atividades);
+
+        //     const atividadeAtual = atividades[idAtividadeRealtimeGlobal.value];
+        //     console.log('atividadeAtual', atividadeAtual);
+
+        //     if (atividadeAtual) {
+        //         respostaCorreta.value = atividadeAtual.correta;
+        //         mensagemResultado.value = atividadeAtual.mensagem;
+        //         atividadeRespondida.value = atividadeAtual.respondida;
+        //     }
+        // }
+
     } catch (error) {
         console.error('Erro ao buscar a sala:', error);
         // Lide com o erro, por exemplo, redirecione o usuário para uma página de erro.
     }
+
+
+    return {
+        idAtividadeRealtimeGlobal,
+        respostaCorreta,
+        mensagemResultado,
+        atividadeRespondida,
+        // ... outras variáveis e métodos que você precisar retornar ...
+    };
 });
 
 
@@ -747,6 +952,7 @@ onMounted(async () => {
     resize: none;
     /* Impede o redimensionamento do usuário */
     margin-bottom: 10px;
+    margin-top: 8px;
 }
 
 .fixed-textarea-codigo {
@@ -851,12 +1057,21 @@ li.aluno {
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
+    margin-bottom: 5px;
 }
 
 .botao-desabilitado {
     background-color: #ccc;
     color: #666;
     cursor: not-allowed;
+}
+
+.acertou {
+    color: green;
+}
+
+.errou {
+    color: red;
 }
 </style>
 
