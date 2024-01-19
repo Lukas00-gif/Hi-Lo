@@ -1,7 +1,7 @@
 <template>
     <div>
         <nav class="navbar">
-            <h3>Codinome HI-LO</h3>
+            <h3>Code Class</h3>
             <div class="centered-items">
                 <ul>
                     <li><a href="#">Perfil</a></li>
@@ -69,7 +69,7 @@
         </div>
 
         <footer class="teste">
-            <p>&copy; 2023 | HI-LO</p>
+            <p>&copy; 2023 | Code Class</p>
         </footer>
     </div>
 </template>

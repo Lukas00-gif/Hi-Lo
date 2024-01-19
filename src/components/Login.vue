@@ -2,7 +2,7 @@
   <div class="container login-container">
     <div class="row">
       <div class="col-md-6 login-form-1">
-        <h3>Codinome Hi-lo</h3>
+        <h3>Code Class</h3>
         <form @submit.prevent="enviar">
           <div class="form-group">
 
@@ -15,10 +15,6 @@
             <label class="labels" for="password">Senha:</label>
             <input type="password" class="form-control" id="password" placeholder="Digite a Sua Senha"
               v-model.trim="v$.password.$model" :class="{ error0: v$.password.$error }" name="password" />
-          </div>
-
-          <div class="form-group">
-            <a href="/esqueciSenha " class="ForgetPwd">Esqueceu a sua Senha?</a>
           </div>
 
           <div v-if="LoginError" class="error-message">Login ou Senha Incorretos</div>

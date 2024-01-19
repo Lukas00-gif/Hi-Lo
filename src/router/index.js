@@ -7,7 +7,6 @@ import Login from '../views/LoginView.vue'
 import Cadastro from '../views/CadastroView.vue'
 import HomeAluno from '../views/HomeAluno.vue'
 import HomeProfessor from '../views/HomeProfessor.vue'
-import EsqueciSenha from '../components/EsquecerSenha.vue'
 import EntrarSala from '../components/EntrarSala.vue'
 
 const toast = useToast();
@@ -40,11 +39,6 @@ const routes = [
     path: '/cadastro',
     name: 'cadastro',
     component: Cadastro
-  },
-  {
-    path: '/esqueciSenha',
-    name: 'EsqueciSenha',
-    component: EsqueciSenha
   },
   {
     path: '/home-aluno',

@@ -1,11 +1,11 @@
-<template>
+<!-- <template>
   <div class="container register-container">
     <div class="row">
       <div class="col-md-6 register-form-1">
         <h3>Codinome Hi-lo - Cadastro</h3>
         <form @submit.prevent="cadastrar">
 
-          <!-- primeiro nome e segundo nome -->
+          
 
           <div class="form-group">
             <label class="labelNome" for="fist">Primeiro Nome:</label>
@@ -21,7 +21,7 @@
             <div v-if="v$.lastName.$error" class="error-message">O Segundo Nome deve ter no Mínimo 4 Letras</div>
           </div>
 
-          <!-- email -->
+          
 
           <div class="form-group">
             <label class="labelEmail" for="Email">E-mail:</label>
@@ -31,7 +31,7 @@
             <div v-if="v$.mail.$error" class="error-message">E-mail Invalido</div>
           </div>
 
-          <!-- senha e confirmar senha -->
+          
 
           <div class="form-group">
             <label class="labelPassword" for="password">Senha:</label>
@@ -60,7 +60,64 @@
       </div>
     </div>
   </div>
+</template> -->
+
+<template>
+  <div class="container register-container">
+    <div class="row">
+      <div class="col-md-6 register-form-1">
+        <h3>Codinome Hi-lo - Cadastro</h3>
+        <form @submit.prevent="cadastrar">
+          <div class="form-group">
+
+            <!-- Primeiro Nome e Último Nome -->
+            <label class="labelNome" for="fist">Primeiro Nome:</label>
+            <input type="text" class="form-control mb-3" placeholder="Digite seu Primeiro Nome" v-model.trim="fistName"
+              :class="{ error0: v$.fistName.$error }" />
+            <div v-if="v$.fistName.$error" class="error-message">O Primeiro Nome deve ser Preenchido e ter no Mínimo 4
+              Letras</div>
+
+            <label class="labelLast" for="last">Último Nome:</label>
+            <input type="text" class="form-control mb-3" placeholder="Digite seu Último Nome" v-model="lastName"
+              :class="{ error0: v$.lastName.$error }" />
+            <div v-if="v$.lastName.$error" class="error-message">O Último Nome deve ser Preenchido e ter no Mínimo 4
+              Letras</div>
+
+            <!-- Email -->
+            <label class="labelEmail" for="Email">E-mail:</label>
+            <input type="text" class="form-control mb-3" placeholder="Digite o Seu E-mail" v-model="mail"
+              :class="{ error0: v$.mail.$error }" />
+            <div v-if="v$.mail.$error" class="error-message">O E-mail deve ser Preenchido e ser um E-mail válido</div>
+
+            <!-- Senha e Confirmar Senha -->
+            <label class="labelPassword" for="password">Senha:</label>
+            <input type="password" class="form-control mb-3" placeholder="Digite a Sua Senha" v-model="pass"
+              :class="{ error0: v$.pass.$error }" />
+            <div v-if="v$.pass.$error" class="error-message">A Senha deve ser Preenchida e ter no Mínimo 6 Caracteres
+            </div>
+
+            <label class="labelConfirm" for="confirm">Confirme a sua Senha:</label>
+            <input type="password" class="form-control" placeholder="Confirme a sua Senha" v-model="confirmPass"
+              :class="{ error0: v$.confirmPass.$error }" />
+            <div v-if="v$.confirmPass.$error" class="error-message">A Confirmação da Senha deve ser Preenchida e as Senhas
+              devem Coincidir</div>
+
+          </div>
+
+          <div class="form-group">
+            <router-link :to="{ name: 'login' }" class="LoginTag">Já tem Conta? Clique Aqui</router-link>
+          </div>
+
+          <div class="form-group">
+            <input type="submit" class="btnCadastro" value="Cadastrar" />
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
 </template>
+
 
 <script>
 import useVuelidate from '@vuelidate/core';
@@ -261,5 +318,4 @@ export default {
   color: #333232;
   font-size: 13px;
   margin-left: -59%;
-}
-</style>
+}</style>
