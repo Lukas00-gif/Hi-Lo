@@ -1,7 +1,10 @@
 <template>
     <div>
         <nav class="navbar">
-            <h3>Codinome HI-LO</h3>
+            <div class="logo">
+                <img src="../img/logo.png" alt="Code Class Logo" />
+            </div>
+            <!-- <h3>Code Class</h3> -->
             <ul>
                 <li><a href="#">Perfil</a></li>
                 <li><a @click="abrirModalAddAlunoSala">Adicionar Codigo</a></li>
@@ -35,13 +38,15 @@
                                 <button class="btn-entrar" @click="exibirSala(sala)" :disabled="sala.ativada"
                                     :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed', } : {}"
                                     >
-                                    Entrar na sala
+                                    Entrar Sala
+                                    <i class="fa-solid fa-door-open entrar-icon"></i>
                                 </button>
 
                                 <button class="btn-sair" @click="prepararSaida(sala)" :disabled="sala.ativada"
                                     :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}"
                                 >
                                     Sair
+                                    <i class="fa-solid fa-arrow-right-from-bracket out-icon"></i>
                                 </button>
                             </div>
                         </div>
@@ -55,7 +60,7 @@
         </div>
 
         <footer>
-            <p>&copy; 2023 | HI-LO</p>
+            <p>&copy; 2023 | Code Class</p>
         </footer>
     </div>
 </template>
@@ -240,8 +245,9 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #434141;
-    color: #fff;
+    /* background-color: #434141; */
+    background-color: #817f80;  
+    color: #070707;
     padding: 1rem;
 }
 
@@ -266,7 +272,7 @@ h3 {
 }
 
 .navbar a {
-    color: #fff;
+    color: #000000;
     text-decoration: none;
     cursor: pointer;
 }
@@ -276,9 +282,28 @@ span {
     padding: 5px;
 }
 
+.logo {
+    display: flex;
+    align-items: center;
+    margin-right: 10px; /* Ajuste conforme necessário */
+}
+
+.logo img {
+    height: 30px; 
+}
+.entrar-icon {
+    margin-left: 5px;
+}
+
+.out-icon {
+    margin-left: 5px;
+}
+
+
 footer {
-    background-color: #434141;
-    color: #fff;
+    /* background-color: #434141; */
+    background-color: #817f80;
+    color: #000000;
     display: flex;
     justify-content: center;
     padding: 1%;

@@ -37,9 +37,13 @@
                 <button type="submit" class="btn-salvar" :class="{ 'btn-disabled': !hasChanges, 'btn-salvar-hover': hasChanges }"
                     :disabled="!hasChanges"
                     >
+                        <i class="fa-regular fa-circle-check"></i>
                         Salvar Alterações
                 </button>
-                <button class="btn-cancelar" @click="fecharModal">Cancelar</button>
+                <button class="btn-cancelar" @click="fecharModal">
+                    <i class="fa-regular fa-circle-xmark"></i>
+                    Cancelar
+                </button>
             </form>
         </div>
     </div>

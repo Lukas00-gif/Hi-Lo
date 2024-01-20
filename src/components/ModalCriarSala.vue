@@ -32,9 +32,11 @@
                 <div v-if="LoginErrorMessage" class="error-message">Por favor, preencha todos os campos</div>
 
                 <button class="btn-criar" type="submit" @click.prevent="criarSala">
+                    <i class="fa-regular fa-circle-check"></i>
                     Criar Sala
                 </button>
                 <button class="btn-cancel" type="submit" @click.prevent="cancelarSala">
+                    <i class="fa-regular fa-circle-xmark"></i>
                     Cancelar
                 </button>
             </form>

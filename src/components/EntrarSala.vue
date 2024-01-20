@@ -2,13 +2,22 @@
     <div class="container">
         <div class="jumbotron">
             <div class="header">
-                <button class="back-button" @click="voltar">Voltar</button>
+                <button class="back-button" @click="voltar">
+                    <i class="fa-solid fa-circle-arrow-left"></i>
+                    Voltar
+                </button>
                 <div class="buttons-group">
                     <!-- <button @click="monstrarMural" class="header-button">Mural</button> -->
 
-                    <button @click="mostrarAtividades" v-if="isUserProfessor()" class="header-button"> Atividades </button>
+                    <button @click="mostrarAtividades" v-if="isUserProfessor()" class="header-button"> 
+                        <i class="fa-solid fa-book atividade-icon"></i>
+                        Atividades
+                    </button>
 
-                    <button @click="mostrarPessoas" class="header-button">Pessoas na Sala</button>
+                    <button @click="mostrarPessoas" class="header-button">
+                        <i class="fa-solid fa-people-group people-icon"></i>
+                        Pessoas na Sala
+                    </button>
                 </div>
                 <p class="sala-code" v-if="sala">Código da Sala: {{ sala.codigo }}</p>
             </div>
@@ -31,6 +40,7 @@
 
                 <!-- Adiciona a classe 'atividade-aberta' se atividadeAberta for true -->
                 <button class="responder-button" @click="abrirAtividade(atividade)" v-show="!atividade.atividadeAberta">
+                    <i class="fa-solid fa-book-open book-icon"></i>
                     Abrir Atividade
                 </button>
 
@@ -53,10 +63,14 @@
                     <button class="enviar-atividade-button" @click="enviarResposta"
                         :disabled="tituloRespostaAluno.trim() === '' || respostaAtividade.trim() === ''"
                         :class="{ 'botao-desabilitado': tituloRespostaAluno.trim() === '' || respostaAtividade.trim() === '', 'enviar-atividade-button-hover': respostaAtividade.trim() !== '' }">
+                        <i class="fa-regular fa-paper-plane resposta-icon"></i>
                         Enviar Resposta
                     </button>
 
-                    <button class="cancelar-atividade-button" @click="fecharAtividade(atividade)">Fechar Atividade</button>
+                    <button class="cancelar-atividade-button" @click="fecharAtividade(atividade)">
+                        <i class="fa-solid fa-square-xmark"></i>
+                        Fechar Atividade
+                    </button>
 
                 </div>
             </div>
@@ -67,6 +81,7 @@
         <div v-if="mostrarAtividadesFlag" class="container1">
             <h1>Atividades</h1>
             <button v-if="isUserProfessor()" @click="mostrarFormulario" class="create-activity-button">
+                <i class="fa-solid fa-plus"></i>
                 Criar Atividade
             </button>
             <button @click="fecharPessoas" class="close-button">X</button> <!-- Botão de fechar -->
@@ -86,9 +101,13 @@
                     </textarea>
                 </div>
                 <div class="form-group-button">
-                    <button type="submit" class="postar-atividade-button">Postar</button>
+                    <button type="submit" class="postar-atividade-button">
+                        <i class="fa-regular fa-circle-check"></i>
+                        Postar
+                    </button>
 
-                    <button @click="cancelarPostagem" type="submit" class="cancelar-atividade-button">
+                    <button @click=     "cancelarPostagem" type="submit" class="cancelar-atividade-button">
+                        <i class="fa-regular fa-circle-xmark"></i>
                         Cancelar
                     </button>
                 </div>
@@ -1072,6 +1091,21 @@ li.aluno {
 
 .errou {
     color: red;
+}
+
+.people-icon {
+    margin-right: 4px;
+}
+
+.book-icon{
+    margin-right: 3px;
+}
+
+.resposta-icon {
+    margin-right: 3px;
+}
+.atividade-icon {
+    margin-right: 3px;
 }
 </style>
 

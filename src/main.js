@@ -9,6 +9,7 @@ import firebaseConfig from './firebaseConfig'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'vue-toastification/dist/index.css'
+import '@fortawesome/fontawesome-free/css/all.css'
 
 const currentUserEmail = localStorage.getItem('currentUserEmail');
 if (currentUserEmail) {

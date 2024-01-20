@@ -5,8 +5,14 @@
             </h4>
             <p>Se Voce Sair, Suas Atividades seram apagadas, mais voce pode voltar quando quiser, usando o codigo da sala. </p>
             <div class="modal-buttons">
-                <button class="btn-confirm" @click="sairDaSala">Sim</button>
-                <button class="btn-cancelar" @click="cancelarSaida">Cancelar</button>
+                <button class="btn-confirm" @click="sairDaSala">
+                    <i class="fa-regular fa-circle-check"></i>
+                    Sim
+                </button>
+                <button class="btn-cancelar" @click="cancelarSaida">
+                    <i class="fa-regular fa-circle-xmark"></i>
+                    Cancelar
+                </button>
             </div>
         </div>
     </div>

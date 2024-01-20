@@ -14,9 +14,11 @@
 
                 <div class="button-group">
                     <button class="btn-add" @click="adicionarCodigo">
+                        <i class="fa-regular fa-circle-check"></i>
                         Adicionar Codigo
                     </button>
                     <button class="btn-cancel" @click="cancelarCodigo">
+                        <i class="fa-regular fa-circle-xmark"></i>
                         Cancelar
                     </button>
                 </div>

@@ -2,7 +2,11 @@
   <div class="container login-container">
     <div class="row">
       <div class="col-md-6 login-form-1">
-        <h3>Code Class</h3>
+
+        <h3>CODE CLASS</h3>
+        <!-- <div class="logo">
+          <img src="../img/logo.png" alt="Code Class Logo" />
+        </div> -->
         <form @submit.prevent="enviar">
           <div class="form-group">
 
@@ -20,15 +24,26 @@
           <div v-if="LoginError" class="error-message">Login ou Senha Incorretos</div>
 
           <div class="form-group">
-            <button class="btnSubmit">Login</button>
+            <button class="btnSubmit">
+              <i class="fa-solid fa-arrow-right-to-bracket login-icon"></i>
+              Login
+            </button>
 
             <router-link to="/cadastro">
-              <input type="submit" class="btnCadastro" value="Cadastro" />
+              <button class="btnCadastro">
+                <i class="fa-solid fa-user-plus cadastro-icon"></i>
+                Cadastro
+              </button>
             </router-link>
-          </div>
 
+          </div>
         </form>
       </div>
+
+      <div class="col-md-6">
+        <img src="../img/img1.png" alt="Descrição da imagem" class="login-image">
+      </div>
+
     </div>
   </div>
 </template>
@@ -50,7 +65,7 @@ const toast = useToast();
 export default {
   name: 'Home',
 
-  
+
   data() {
     return {
       v$: useValidate(),
@@ -75,7 +90,7 @@ export default {
 
   created() {
     const savedUserEmail = localStorage.getItem('currentUserEmail');
-    if(savedUserEmail) {
+    if (savedUserEmail) {
       store.commit('setCurrentUserEmail', savedUserEmail);
     }
   },
@@ -159,10 +174,18 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.login-container {
+/* .login-container {
   margin-top: 5%;
-  margin-bottom: 5%;
-  margin-left: 28%;
+  margin-bottom: 5%; 
+  margin-left: 28%;  
+} */
+
+.login-image {
+  width: 90%;
+  /* Ajuste conforme necessário */
+  height: auto;
+  /* Para manter a proporção da imagem */
+  margin-top: 5%;
 }
 
 .error-message {
@@ -187,6 +210,10 @@ export default {
   padding: 9%;
 }
 
+.login-icon {
+  margin-right: 6px;
+}
+
 .btnSubmit,
 .btnCadastro {
   width: 45%;
@@ -202,6 +229,10 @@ export default {
   display: inline-block;
 }
 
+.cadastro-icon {
+  margin-right: 4px;
+}
+
 .btnSubmit:hover,
 .btnCadastro:hover {
   background-color: #0b3f77;
@@ -213,7 +244,7 @@ export default {
 
 .login-form-1 {
   font-weight: 600;
-  color: #fff;
+  color: #ffffff;
   background-color: #fcfcfc;
   text-decoration: none;
 }
@@ -233,5 +264,15 @@ export default {
   color: rgb(51, 50, 50);
   font-size: 13px;
   margin-left: -85%;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo img {
+  height: 50px; 
 }
 </style>

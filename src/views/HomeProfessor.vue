@@ -1,7 +1,11 @@
 <template>
     <div>
         <nav class="navbar">
-            <h3>Code Class</h3>
+            <div class="logo">
+                <img src="../img/logo.png" alt="Code Class Logo" />
+            </div>
+
+            <!-- <h3>Code Class</h3> -->
             <div class="centered-items">
                 <ul>
                     <li><a href="#">Perfil</a></li>
@@ -35,15 +39,15 @@
                             <div class="button-group">
 
                                 <button class="btn-editar" @click="editarSala(sala)" :disabled="sala.ativada"
-                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}" 
-                                >
-                                        Editar Sala
+                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}">
+                                    Editar Sala
+                                    <i class="fa-solid fa-pen-to-square edit-icon"></i>
                                 </button>
 
                                 <button class="btn-entrar" @click="entrarNaSala(sala)" :disabled="sala.ativada"
-                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}"
-                                >
-                                        Entrar na sala
+                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}">
+                                    Entrar Sala
+                                    <i class="fa-solid fa-door-open"></i>
                                 </button>
 
                                 <!-- substituir por um radio boton que deve aparecer na sala corespondente
@@ -160,7 +164,7 @@ export default {
         alterarStatusSala(sala) {
             const db = getFirestore();
             const salaRef = doc(db, 'salas', sala.codigo);
-            
+
             updateDoc(salaRef, { ativada: sala.ativada })
                 .then(() => {
                     if (sala.ativada) {
@@ -247,7 +251,7 @@ export default {
                 sobrenome: ''
             }
         });
- 
+
         const db = getFirestore();
         const variableDoc = doc;
         const currentUserEmail = store.state.currentUserEmail;
@@ -274,7 +278,7 @@ export default {
                     // const salaDoc = await getDocs(salaRef);
                     const salaDoc = await getDoc(salaRef);
 
-                    if (salaDoc.exists()){
+                    if (salaDoc.exists()) {
                         salaData.ativada = salaDoc.data().ativada;
                     }
                     // state.salas.push(salaData); 
@@ -351,8 +355,9 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #434141;
-    color: #fff;
+    /* background-color: #434141; */
+    background-color: #817f80;
+    color: #000000;
     padding: 1rem;
 }
 
@@ -386,7 +391,7 @@ h3 {
 }
 
 .navbar a {
-    color: #fff;
+    color: #000000;
     text-decoration: none;
     cursor: pointer;
 }
@@ -444,9 +449,24 @@ span {
     /* Posição quando ativado */
 }
 
+.logo {
+    display: flex;
+    align-items: center;
+    margin-right: 10px; /* Ajuste conforme necessário */
+}
+
+.logo img {
+    height: 30px; 
+}
+
+.edit-icon{
+    margin-left: 2px;
+}
+
 footer {
-    background-color: #434141;
-    color: #fff;
+    /* background-color: #434141; */
+    background-color: #817f80;
+    color: #000000;
     display: flex;
     justify-content: center;
     padding: 1%;
