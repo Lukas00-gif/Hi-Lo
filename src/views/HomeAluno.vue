@@ -6,7 +6,7 @@
             </div>
             <!-- <h3>Code Class</h3> -->
             <ul>
-                <li><a href="#">Perfil</a></li>
+                <li><a href="/perfil">Perfil</a></li>
                 <li><a @click="abrirModalAddAlunoSala">Adicionar Codigo</a></li>
                 <Logout />
             </ul>

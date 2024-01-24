@@ -46,10 +46,6 @@
             <router-link :to="{ name: 'login' }" class="LoginTag">Já tem Conta? Clique Aqui</router-link>
           </div>
 
-          <!-- <div class="form-group">
-            <i class="fa-solid fa-right-to-bracket"></i>
-            <input type="submit" class="btnCadastro" value="Cadastrar Usuario" />
-          </div> -->
           <div class="form-group">
             <button class="btnCadastro">
               <i class="fa-solid fa-user-plus cadastro-icon"></i> Cadastrar Usuário
@@ -157,6 +153,9 @@ export default {
           console.log(error);
           toast.error('erro ao realizar o cadastro')
         }
+      } else {
+        this.v$.$touch();
+        toast.error('Campos Invalidos');
       }
     }
   },

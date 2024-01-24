@@ -3,11 +3,12 @@ import { useToast } from 'vue-toastification';
 import store from '../state/store';
 
 
-import Login from '../views/LoginView.vue'
-import Cadastro from '../views/CadastroView.vue'
-import HomeAluno from '../views/HomeAluno.vue'
-import HomeProfessor from '../views/HomeProfessor.vue'
-import EntrarSala from '../components/EntrarSala.vue'
+import Login from '../views/LoginView.vue';
+import Cadastro from '../views/CadastroView.vue';
+import HomeAluno from '../views/HomeAluno.vue';
+import HomeProfessor from '../views/HomeProfessor.vue';
+import Perfil from '../views/Perfil.vue';
+import EntrarSala from '../components/EntrarSala.vue';
 
 const toast = useToast();
 
@@ -39,6 +40,12 @@ const routes = [
     path: '/cadastro',
     name: 'cadastro',
     component: Cadastro
+  },
+  {
+    path: '/perfil',
+    name: 'perfil',
+    component: Perfil,
+    beforeEnter: authGuard,
   },
   {
     path: '/home-aluno',

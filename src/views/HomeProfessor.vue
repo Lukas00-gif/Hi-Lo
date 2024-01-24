@@ -8,7 +8,7 @@
             <!-- <h3>Code Class</h3> -->
             <div class="centered-items">
                 <ul>
-                    <li><a href="#">Perfil</a></li>
+                    <li><a href="/perfil">Perfil</a></li>
                     <li><a @click="abrirModal">Criar Sala</a></li>
                     <Logout />
                 </ul>

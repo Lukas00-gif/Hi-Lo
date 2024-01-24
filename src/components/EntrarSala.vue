@@ -9,7 +9,7 @@
                 <div class="buttons-group">
                     <!-- <button @click="monstrarMural" class="header-button">Mural</button> -->
 
-                    <button @click="mostrarAtividades" v-if="isUserProfessor()" class="header-button"> 
+                    <button @click="mostrarAtividades" v-if="isUserProfessor()" class="header-button">
                         <i class="fa-solid fa-book atividade-icon"></i>
                         Atividades
                     </button>
@@ -44,10 +44,14 @@
                     Abrir Atividade
                 </button>
 
+                <button v-if="isUserProfessor()" class="excluir-Atividade-button" @click="excluirAtividade">
+                    <i class="fa-solid fa-eraser"></i>
+                    Excluir Atividade
+                </button>
+
                 <div v-if="mostrarMensagem" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
                     {{ mensagemResultado }}
                 </div>
-
 
 
                 <!-- Textarea e botões adicionais -->
@@ -106,7 +110,7 @@
                         Postar
                     </button>
 
-                    <button @click=     "cancelarPostagem" type="submit" class="cancelar-atividade-button">
+                    <button @click="cancelarPostagem" type="submit" class="cancelar-atividade-button">
                         <i class="fa-regular fa-circle-xmark"></i>
                         Cancelar
                     </button>
@@ -143,14 +147,14 @@ import {
     setDoc,
     query,
     where,
+    deleteDoc
 } from 'firebase/firestore';
-import { getDatabase, ref as refs, get, update, push, set } from 'firebase/database';
+import { getDatabase, ref as refs, get, push, set } from 'firebase/database';
 import { onMounted, ref } from 'vue';
 import { buscarSalaPeloCodigo } from '../utils/salas';
 import { useRoute } from 'vue-router';
 import { buscarDetalhesDoUsuarioPorEmail } from '../utils/usuarioPorEmail';
 import { useToast } from 'vue-toastification';
-import store from '../state/store';
 
 import axios from 'axios';
 
@@ -171,6 +175,7 @@ const atividadeRespondida = ref(false);
 const mostrarMensagem = ref(false);
 const respostaSalva = ref(false);
 const idAtividadeRealtimeGlobal = ref(null);
+const atividadeSelecionada = ref(null);
 
 const mensagemResultado = ref('');
 const tituloAtividade = ref('');
@@ -186,6 +191,7 @@ const atividade = ref([]);
 const respostasAtividades = ref([]);
 const currentUserEmail = localStorage.getItem('currentUserEmail');
 const { v4: uuidv4 } = require('uuid');
+
 
 
 const carregarPessoasNaSala = async () => {
@@ -314,23 +320,6 @@ const enviarFormulario = async () => {
 
             await push(variaveisAtividadesRef, variaveisAtividadesData);
 
-            // Obtém o array de atividades do localStorage
-            // const atividadesLocalStorage = JSON.parse(localStorage.getItem('atividades')) || {};
-
-            // Converte as chaves para strings (opcional)
-            // const atividadesLocalStorageStringKeys = Object.fromEntries(
-            //     Object.entries(atividadesLocalStorage).map(([key, value]) => [String(key), value])
-            // );
-
-            // atividadesLocalStorageStringKeys[atividadeDocRef.id] = {
-            //     respondida: false,
-            //     correta: false,
-            //     mensagem: '',
-            // };
-
-            // localStorage.setItem('atividades', JSON.stringify(atividadesLocalStorageStringKeys));
-
-            // Adiciona a nova atividade ao estado Vuex
 
             toast.success("Postagem Feita", {
                 position: "bottom-right",
@@ -413,7 +402,7 @@ const enviarResposta = async () => {
     };
 
     try {
-        
+
         // Use idAtividade como o ID do Documento
         const respostaAlunoDocRef = doc(respostaAlunoCollectionRef, idAtividadeRealtime);
         await setDoc(respostaAlunoDocRef, respostaAluno);
@@ -422,20 +411,6 @@ const enviarResposta = async () => {
             position: 'bottom-right',
             timeout: 2000,
         });
-
-        // atividadeRespondida.value = true;
-        // // manda para o vuex com as informaçoes, com o nome marcarAtividadesRespondidas
-        // store.dispatch('marcarAtividadeRespondida', idAtividadeRealtime, respostaCorreta, mensagemResultado.value);
-
-        // store.dispatch('marcarAtividadeRespondida', {
-        //     idAtividade: idAtividadeRealtime,
-        //     respondida: true,
-        //     correta: true,
-        //     mensagem: '',
-        // });
-
-
-        // await atualizarRespostaNoRealtime(idAtividadeRealtime, true, true, 'Sua mensagem de acerto ou erro aqui');
 
         await compararCodigos(idAtividadeRealtime);
 
@@ -658,6 +633,31 @@ const carregarEstadoAtividade = async (idAtividade) => {
     }
 };
 
+const excluirAtividade = async() => {
+    if (confirm("Tem certeza que deseja excluir esta atividade?")) {
+        const db = getFirestore();
+        const toast = useToast();
+
+        try {
+
+            const idAtividadeFirestore = await getCodigoUnicoAtividade();
+            // Substitua 'atividades' pelo nome da sua coleção no Firestore
+            const docRef = doc(db, 'atividades', idAtividadeFirestore);
+            await deleteDoc(docRef);
+
+            toast.success("Exclusão da Atividade foi feita com Sucesso", {
+                position: "bottom-right",
+                timeout: 3000,
+            });
+
+            location.reload();
+
+        } catch (error) {
+            console.error('Erro ao excluir a atividade:', error);
+            alert('Erro ao excluir a atividade. Por favor, tente novamente.');
+        }
+    }
+};
 
 
 // const monstrarMural = () => {
@@ -724,10 +724,10 @@ onMounted(async () => {
         console.log('idatividadeRealtimeGlobal onMouted', idAtividadeRealtimeGlobal);
 
         const respostasAtividades = JSON.parse(localStorage.getItem('respostasAtividades')) || [];
-        console.log('respostasatividades', respostasAtividades);
+        console.log('respostasAtividades', respostasAtividades);
 
         const resposta = respostasAtividades.find(resposta => resposta.idAtividade === idAtividadeRealtimeGlobal.value);
-        console.log('resposta', resposta);
+        console.log('resposta no onmouted', resposta);
 
         if (resposta) {
             respostaCorreta.value = resposta.correta;
@@ -779,13 +779,13 @@ onMounted(async () => {
     }
 
 
-    return {
-        idAtividadeRealtimeGlobal,
-        respostaCorreta,
-        mensagemResultado,
-        atividadeRespondida,
-        // ... outras variáveis e métodos que você precisar retornar ...
-    };
+    // return {
+    //     idAtividadeRealtimeGlobal,
+    //     respostaCorreta,
+    //     mensagemResultado,
+    //     atividadeRespondida,
+    //     // ... outras variáveis e métodos que você precisar retornar ...
+    // };
 });
 
 
@@ -1079,6 +1079,17 @@ li.aluno {
     margin-bottom: 5px;
 }
 
+.excluir-Atividade-button {
+    background-color: #fe2a00;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 5px;
+    margin-left: 8px;
+}
+
 .botao-desabilitado {
     background-color: #ccc;
     color: #666;
@@ -1097,13 +1108,14 @@ li.aluno {
     margin-right: 4px;
 }
 
-.book-icon{
+.book-icon {
     margin-right: 3px;
 }
 
 .resposta-icon {
     margin-right: 3px;
 }
+
 .atividade-icon {
     margin-right: 3px;
 }
