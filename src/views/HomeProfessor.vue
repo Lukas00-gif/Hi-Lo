@@ -46,16 +46,10 @@
 
                                 <button class="btn-entrar" @click="entrarNaSala(sala)" :disabled="sala.ativada"
                                     :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}">
-                                    Entrar Sala
+                                    Entrar na Sala
                                     <i class="fa-solid fa-door-open"></i>
                                 </button>
 
-                                <!-- substituir por um radio boton que deve aparecer na sala corespondente
-                                um valor boolen, se estiver falso a sala esta desativada se for true 
-                                a sala estta ativada, e desativar os botoes menos o radio boton -->
-                                <!-- <button class="btn-deletar" @click="abrirModalExcluir(sala)">
-                                    Deletar
-                                </button> -->
                                 <label class="toggle-switch">
                                     <input type="checkbox" class="toggle-input" v-model="sala.ativada"
                                         @change="alterarStatusSala(sala)">
@@ -73,7 +67,7 @@
         </div>
 
         <footer class="teste">
-            <p>&copy; 2023 | Code Class</p>
+            <p>&copy; 2024 | Code Class</p>
         </footer>
     </div>
 </template>
@@ -452,14 +446,15 @@ span {
 .logo {
     display: flex;
     align-items: center;
-    margin-right: 10px; /* Ajuste conforme necessário */
+    margin-right: 10px;
+    /* Ajuste conforme necessário */
 }
 
 .logo img {
-    height: 30px; 
+    height: 30px;
 }
 
-.edit-icon{
+.edit-icon {
     margin-left: 2px;
 }
 
@@ -473,5 +468,116 @@ footer {
     position: fixed;
     bottom: 0;
     width: 100%;
+}
+
+
+/* Largura antes de 769px -- OK */
+@media (max-width: 768px) {
+    .card-deck {
+        justify-content: center;
+    }
+
+    .container {
+        margin-top: 15px;
+        /* Ajuste conforme necessário */
+    }
+
+    .card {
+        width: 100%;
+    }
+
+}
+
+/* Largura entre 769px e 900px -- OK */
+@media (min-width: 769px) and (max-width: 900px) {
+    .card-deck {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(48%, 1fr));
+        gap: 10px;
+        justify-content: space-between;
+    }
+
+    .card {
+        width: 100%;
+        /* Ajuste conforme necessário */
+
+    }
+
+    .container {
+        margin-top: 20px;
+        /* Ajuste conforme necessário */
+    }
+
+    .btn-editar,
+    .btn-deletar,
+    .btn-entrar {
+        font-size: 12px;
+    }
+}
+
+/* Largura entre 901px e 998px -- OK */
+@media (min-width: 901px) and (max-width: 998px) {
+    .card-deck {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+        gap: 7px;
+        justify-content: space-between;
+    }
+    .container {
+        margin-top: 25px;
+    }
+
+    .card {
+        width: 100%;
+    }
+
+    .btn-editar,
+    .btn-deletar,
+    .btn-entrar {
+        font-size: 12px;
+    }
+
+}
+
+/* Largura entre 999px e 1200px  -- OK */
+@media (min-width: 999px) and (max-width: 1200px) {
+    .container {
+        margin-top: 25px;
+    }
+
+    .card {
+        width: 100%;
+    }
+
+    .card-deck {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+        gap: 7px;
+        justify-content: space-between;
+    }
+
+    .btn-editar,
+    .btn-deletar,
+    .btn-entrar {
+        font-size: 16px;
+    }
+
+    .button-group{
+        margin-left: 14%;
+    }
+
+
+}
+
+/* Acima de 1201px -- OK */
+@media (min-width: 1201px) {
+    .container {
+        margin-top: 15px;
+    }
+
+    .card {
+        width: 100%;
+    }
+
 }
 </style>

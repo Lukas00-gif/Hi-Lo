@@ -49,7 +49,11 @@
                     Excluir Atividade
                 </button>
 
-                <div v-if="mostrarMensagem" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
+                <!-- original <div v-if="mostrarMensagem" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
+                    {{ mensagemResultado }}
+                </div> -->
+
+                <div v-if="atividadeRespondida" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
                     {{ mensagemResultado }}
                 </div>
 
@@ -517,7 +521,8 @@ const compararCodigos = async (idAtividade) => {
                     localStorage.setItem('respostasAtividades', JSON.stringify(respostasAtividades));
 
                     mensagemResultado.value = respostaServidor === 'Os Códigos São Iguais' ? 'Você acertou!' : 'Você errou!';
-                    mostrarMensagem.value = true;
+                    // mostrarMensagem.value = true;
+                    atividadeRespondida.value = true;
 
 
 
@@ -733,45 +738,13 @@ onMounted(async () => {
             respostaCorreta.value = resposta.correta;
             mensagemResultado.value = resposta.mensagem;
             atividadeRespondida.value = resposta.respondida;
-            mostrarMensagem.value = true;
+            atividadeRespondida.value = true;
+            // mostrarMensagem.value = true;
         } else {
-            mostrarMensagem.value = false;
+            atividadeRespondida.value = true;
+            // mostrarMensagem.value = false;
         }
 
-
-
-        // await carregarEstadoAtividade(idAtividadeRealtimeGlobal);
-
-        // const respostasAtividades = JSON.parse(localStorage.getItem('respostasAtividades')) || [];
-        // console.log('RESPOSTAS ATIVIDADES LOCALSTORAGE', respostasAtividades);
-
-        // respostasAtividades.forEach(resposta => {
-        //     if (resposta.idAtividade === idAtividadeRealtimeGlobal.value) {
-        //         console.log('DENTRO DA RESPOSTA.IDATIVIDADE', resposta.idAtividade);
-
-        //         atividade.respondida = resposta.respondida;
-        //         atividade.correta = resposta.correta;
-        //         atividade.mensagem = resposta.mensagem;
-        //     }
-        // });
-
-
-
-        // const atividadeLocalStorage = localStorage.getItem('atividades');
-        // console.log('atividadeLocalStorage', atividadeLocalStorage);
-        // if (atividadeLocalStorage) {
-        //     const atividades = JSON.parse(atividadeLocalStorage);
-        //     console.log('atividades', atividades);
-
-        //     const atividadeAtual = atividades[idAtividadeRealtimeGlobal.value];
-        //     console.log('atividadeAtual', atividadeAtual);
-
-        //     if (atividadeAtual) {
-        //         respostaCorreta.value = atividadeAtual.correta;
-        //         mensagemResultado.value = atividadeAtual.mensagem;
-        //         atividadeRespondida.value = atividadeAtual.respondida;
-        //     }
-        // }
 
     } catch (error) {
         console.error('Erro ao buscar a sala:', error);

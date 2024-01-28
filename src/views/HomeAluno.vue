@@ -26,7 +26,7 @@
                 <div v-for="sala in salasFiltradas" :key="sala.codigo" class="sala-card">
                     <div class="card">
                         <div class="card-body">
-                            <p class="cod">Codigo da sala: {{ sala.codigo }} 
+                            <p class="cod">Codigo da sala: {{ sala.codigo }}
                                 <span class="aviso-desativada" v-if="sala.ativada === true">
                                     ( Sala Esta Desativada )
                                 </span>
@@ -36,15 +36,13 @@
                             <p class="card-text">Curso: {{ sala.nomeCurso }}</p>
                             <div class="sala-header">
                                 <button class="btn-entrar" @click="exibirSala(sala)" :disabled="sala.ativada"
-                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed', } : {}"
-                                    >
+                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed', } : {}">
                                     Entrar Sala
                                     <i class="fa-solid fa-door-open entrar-icon"></i>
                                 </button>
 
                                 <button class="btn-sair" @click="prepararSaida(sala)" :disabled="sala.ativada"
-                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}"
-                                >
+                                    :style="sala.ativada ? { background: '#cccccc', cursor: 'not-allowed' } : {}">
                                     Sair
                                     <i class="fa-solid fa-arrow-right-from-bracket out-icon"></i>
                                 </button>
@@ -60,7 +58,7 @@
         </div>
 
         <footer>
-            <p>&copy; 2023 | Code Class</p>
+            <p>&copy; 2024 | Code Class</p>
         </footer>
     </div>
 </template>
@@ -157,7 +155,7 @@ export default {
             this.$router.push({ name: 'EntrarSala', params: { codigoSala } });
         },
 
-        
+
         // Função para preparar a saída da sala (abrir o modal de confirmação)
         prepararSaida(sala) {
             this.salaSelecionada = sala;
@@ -246,7 +244,7 @@ export default {
     justify-content: space-between;
     align-items: center;
     /* background-color: #434141; */
-    background-color: #817f80;  
+    background-color: #817f80;
     color: #070707;
     padding: 1rem;
 }
@@ -285,12 +283,13 @@ span {
 .logo {
     display: flex;
     align-items: center;
-    margin-right: 10px; /* Ajuste conforme necessário */
+    margin-right: 10px;
 }
 
 .logo img {
-    height: 30px; 
+    height: 30px;
 }
+
 .entrar-icon {
     margin-left: 5px;
 }
@@ -311,6 +310,97 @@ footer {
     bottom: 0;
     width: 100%;
 }
+
+
+/* Largura antes de 769px -- OK */
+@media (max-width: 768px) {
+    .card-deck {
+        justify-content: center;
+    }
+
+    .container {
+        margin-top: 15px;
+        /* Ajuste conforme necessário */
+    }
+
+    .card {
+        width: 131%;
+    }
+
+}
+
+/* Largura entre 769px e 900px -- OK */
+@media (min-width: 769px) and (max-width: 900px) {
+    .card-deck {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(48%, 1fr));
+        gap: 10px;
+        justify-content: space-between;
+    }
+
+    .card {
+        width: 100%;
+    }
+
+    .container {
+        margin-top: 15px;
+    }
+
+    .btn-sair,
+    .btn-entrar {
+        font-size: 14px;
+    }
+}
+
+/* Largura entre 901px e 998px -- OK */
+@media (min-width: 901px) and (max-width: 998px) {
+    .card-deck {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+        gap: 7px;
+        justify-content: space-between;
+    }
+
+    .container {
+        margin-top: 15px;
+    }
+
+    .card {
+        width: 100%;
+    }
+
+    .btn-sair,
+    .btn-entrar {
+        font-size: 14px;
+    }
+
+}
+
+/* Largura entre 999px e 1200px  -- OK */
+@media (min-width: 999px) and (max-width: 1200px) {
+    .container {
+        margin-top: 15px;
+    }
+
+    .card {
+        width: 91%;
+    }
+
+    .card-deck {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+        gap: 7px;
+        justify-content: space-between;
+    }
+
+    .btn-sair,
+    .btn-entrar {
+        font-size: 16px;
+    }
+
+}
+
+/* Acima de 1201px -- OK */
 </style>
 
 

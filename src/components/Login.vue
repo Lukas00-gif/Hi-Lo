@@ -4,9 +4,6 @@
       <div class="col-md-6 login-form-1">
 
         <h3>CODE CLASS</h3>
-        <!-- <div class="logo">
-          <img src="../img/logo.png" alt="Code Class Logo" />
-        </div> -->
         <form @submit.prevent="enviar">
           <div class="form-group">
 
@@ -174,12 +171,6 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-/* .login-container {
-  margin-top: 5%;
-  margin-bottom: 5%; 
-  margin-left: 28%;  
-} */
-
 .login-image {
   width: 90%;
   /* Ajuste conforme necessário */
@@ -249,12 +240,6 @@ export default {
   text-decoration: none;
 }
 
-.ForgetPwd {
-  color: #0062cc;
-  font-size: 12px;
-  margin-left: 57%;
-  text-decoration: none;
-}
 
 .error0 {
   border: 2px solid red;
@@ -266,13 +251,137 @@ export default {
   margin-left: -85%;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* largura de ate 768 px --  OK */
+@media (max-width: 768px) {
+  .login-image {
+    width: 90%;
+    margin-top: 5%;
+  }
+
+  .login-form-1 {
+    padding: 5%;
+    margin-top: 5%;
+  }
+
+  .labels {
+    margin-left: 0;
+  }
 }
 
-.logo img {
-  height: 50px; 
+/* Largura entre 769px e 900px -- OK  */
+@media (min-width: 769px) and (max-width: 900px) {
+  .login-image {
+    width: 100%;
+    height: 97%;
+  }
+
+  .login-form-1 {
+    margin-top: 2%;
+  }
+
+  .labels {
+    margin-left: -80%;
+  }
+
+  .btnCadastro, .btnSubmit{
+    /* margin-left: 10%; */
+    font-size: 14px;
+  }
 }
+
+/* Largura entre 901px e 1200  -- ok */
+@media (min-width: 901px) and (max-width: 998px) {
+.login-container{
+  display: flex;
+  justify-content: space-between;
+}
+  .login-form-1 {
+    width: 50%;
+    margin-left: 0;
+
+}
+
+  .login-image {
+    width: 110%; 
+    height: auto;
+  }
+
+  .login-form-1 {
+    margin-top: 2%;
+  }
+
+  .labels {
+    margin-left: -80%;
+  }
+
+  .btnCadastro, .btnSubmit{
+    font-size: 14px;
+    padding: 6px;
+    margin-top: 13%;
+  }
+}
+
+@media (min-width: 999px) and (max-width: 1200px) {
+  .login-container{
+  display: flex;
+  justify-content: space-between;
+}
+  .login-form-1 {
+    width: 50%;
+    margin-left: 0;
+}
+
+  .login-image {
+    width: 100%; 
+    height: auto;
+  }
+
+  .login-form-1 {
+    margin-top: 2%;
+  }
+
+  .labels {
+    margin-left: -80%;
+  }
+
+  .btnCadastro, .btnSubmit{
+    font-size: 14px;
+    padding: 10px;
+    margin-top: 20%;
+  }
+}
+
+/* Largura acima de 1200px -- OK  */
+@media (min-width: 1201px) {
+  .login-container{
+  display: flex;
+  justify-content: space-between;
+}
+  .login-form-1 {
+    width: 40%;
+    height: 92%;
+    margin-left: 10%;
+
+}
+
+  .login-image {
+    width: 80%; 
+    height: auto;
+  }
+
+  .login-form-1 {
+    margin-top: 2%;
+  }
+
+  .labels {
+    margin-left: -80%;
+  }
+
+  .btnCadastro, .btnSubmit{
+    font-size: 14px;
+    padding: 10px;
+    margin-top: 20%;
+  }
+}
+
 </style>
