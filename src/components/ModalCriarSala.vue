@@ -47,7 +47,7 @@
 <script>
 import useValidate from '@vuelidate/core'
 import { required, email } from '@vuelidate/validators'
-import { getFirestore, collection, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
 import { useToast } from 'vue-toastification'
 
 const toast = useToast()
@@ -101,8 +101,7 @@ export default {
 
             if (!this.v$.$invalid) {
                 const codigo = gerarCodigoAleatorio();
-                // console.log(this.nomeMateria, this.nomeCurso, this.nomeProfessor, codigo);
-
+                
                 const db = getFirestore();
                 //aqui cria a sala e e feita atravez do nome 'salas' que e o nome da coleçao no firebase
                 // e e passado como codigo da sala a variavel que eu criei que e o codigo
@@ -121,15 +120,14 @@ export default {
                     try {
                         await setDoc(salaRef, sala);
 
-                        // evento fecha 
                         this.$emit('fechar');
 
                         // e a sala nova e add no array de salas onde vai ser renderizada
                         this.$parent.salas.push(sala);
                         this.$router.push('/home-professor');
-                        toast.success("SALA CRIADA COM SUCESSO!", {
+                        toast.success("Sala Criada com Sucesso!", {
                             position: "bottom-right",
-                            timeout: 2000,
+                            timeout: 3000,
                         });
 
                     } catch (error) {
@@ -168,17 +166,13 @@ export default {
 <style scoped>
 .modal {
     display: block;
-    /* Mostra o modal */
     position: fixed;
-    /* Mantém o modal na tela */
     z-index: 1;
-    /* Define a ordem de empilhamento */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
-    /* Define um fundo semitransparente */
 }
 
 .modal-content {

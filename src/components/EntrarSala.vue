@@ -7,7 +7,6 @@
                     Voltar
                 </button>
                 <div class="buttons-group">
-                    <!-- <button @click="monstrarMural" class="header-button">Mural</button> -->
 
                     <button @click="mostrarAtividades" v-if="isUserProfessor()" class="header-button">
                         <i class="fa-solid fa-book atividade-icon"></i>
@@ -49,11 +48,7 @@
                     Excluir Atividade
                 </button>
 
-                <!-- original <div v-if="mostrarMensagem" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
-                    {{ mensagemResultado }}
-                </div> -->
-
-                <div v-if="atividadeRespondida" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
+                original <div v-if="mostrarMensagem" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
                     {{ mensagemResultado }}
                 </div>
 
@@ -125,7 +120,7 @@
         <!-- conteudo do pessoas na sala -->
         <div v-if="mostrarPessoasFlag" class="container1">
             <h1>Pessoas na Sala</h1>
-            <button @click="fecharPessoas" class="close-button">X</button> <!-- Botão de fechar -->
+            <button @click="fecharPessoas" class="close-button">X</button> 
             <ul>
                 <!-- Exibir professor se existir -->
                 <li class="professor" v-if="professor">Professor: {{ professor }}</li>
@@ -136,7 +131,6 @@
                 </li>
             </ul>
         </div>
-
 
     </div>
 </template>
@@ -177,9 +171,7 @@ const mostrarFormularioFlag = ref(false);
 const respostaCorreta = ref(false);
 const atividadeRespondida = ref(false);
 const mostrarMensagem = ref(false);
-const respostaSalva = ref(false);
 const idAtividadeRealtimeGlobal = ref(null);
-const atividadeSelecionada = ref(null);
 
 const mensagemResultado = ref('');
 const tituloAtividade = ref('');
@@ -191,8 +183,6 @@ const tituloRespostaAluno = ref('');
 const professor = ref({});
 const alunosNaSala = ref([]);
 const atividades = ref([]);
-const atividade = ref([]);
-const respostasAtividades = ref([]);
 const currentUserEmail = localStorage.getItem('currentUserEmail');
 const { v4: uuidv4 } = require('uuid');
 
@@ -212,15 +202,9 @@ const carregarPessoasNaSala = async () => {
                 professor.value = salaData.nomeProfessor;
             }
 
-            // console.log('AQUI TEM A SALADATA', salaData);
-
             // verifica se tem a sala, nessa condiçao todas tem que ser vedadeiras
             // para entrar dentro desse bloco
             if (salaData && salaData.nomeProfessor && salaData.alunos) {
-                // Obtenha os detalhes do professor
-                // const professorEmail = salaData.professor;
-                // const professorDetails = await buscarDetalhesDoUsuarioPorEmail(professorEmail);
-
                 // Use a propriedade alunos para armazenar os emails dos alunos
                 const alunosEmails = salaData.alunos;
 
@@ -246,11 +230,9 @@ const carregarPessoasNaSala = async () => {
 
 // para fazer a verificaçao e retorna false ou true
 const validarFormulario = () => {
-    // Lógica de validação aqui
     if (tituloAtividade.value.trim() === '' || descricaoAtividade.value.trim() === '' ||
         saidaEsperada.value.trim() === '') {
 
-        // Exibir mensagem de erro (você pode usar um toast aqui)
         toast.error(' por favor preencha todos os campos', {
             position: "bottom-right",
             timeout: 3000,
@@ -260,7 +242,6 @@ const validarFormulario = () => {
 
     if (tituloAtividade.value.length < 10 || descricaoAtividade.value.length < 10 ||
         saidaEsperada.value.length < 1) {
-        // Exibir mensagem de erro (você pode usar um toast aqui)
         toast.error('Os campos devem ter no minimo 10 caracteres', {
             position: "bottom-right",
             timeout: 3000,
@@ -434,7 +415,6 @@ const enviarResposta = async () => {
 
 
 
-// chamada do axios
 // Modifique a assinatura da função compararCodigos para receber a atividadeKey
 const compararCodigos = async (idAtividade) => {
     try {
@@ -477,17 +457,9 @@ const compararCodigos = async (idAtividade) => {
 
                     console.log(response.data.resultado)
 
-                    // const respostaServidor = response.data.resultado;
-
-                    // respostaCorreta.value = respostaServidor === 'Os Códigos São Iguais';
-                    // mensagemServidor.value = respostaServidor;
-
-                    // // Ajuste a lógica para verificar se a resposta é correta ou não
-                    // mensagemResultado.value = respostaCorreta.value ? 'Você acertou!' : 'Você errou!';
-
                     const respostaServidor = response.data.resultado;
 
-                    // Agora, você pode atualizar o Realtime Database com as novas informações
+                    // atualizar o Realtime Database com as novas informações
                     const dbRealtime = getDatabase();
                     const atividadesRef = refs(dbRealtime, `variaveisAtividades/${idAtividade}`);
                     await set(atividadesRef, {
@@ -496,8 +468,6 @@ const compararCodigos = async (idAtividade) => {
                         mensagem: respostaServidor === 'Os Códigos São Iguais' ? 'Você acertou!' : 'Você errou!',
                     }, { merge: true });
 
-
-                    // const respostaServidor = response.data.resultado;
 
                     const respostasAtividades = JSON.parse(localStorage.getItem('respostasAtividades')) || [];
                     const index = respostasAtividades.findIndex(resposta => resposta.idAtividade === idAtividade);
@@ -521,10 +491,7 @@ const compararCodigos = async (idAtividade) => {
                     localStorage.setItem('respostasAtividades', JSON.stringify(respostasAtividades));
 
                     mensagemResultado.value = respostaServidor === 'Os Códigos São Iguais' ? 'Você acertou!' : 'Você errou!';
-                    // mostrarMensagem.value = true;
-                    atividadeRespondida.value = true;
-
-
+                    mostrarMensagem.value = true;
 
                     // const respostasAtividades = JSON.parse(localStorage.getItem('respostasAtividades')) || [];
 
@@ -619,34 +586,14 @@ const getCodigoUnicoAtividade = async () => {
 };
 
 
-const carregarEstadoAtividade = async (idAtividade) => {
-    const respostasAtividadesString = localStorage.getItem('respostasAtividades');
-
-    // Converta a string JSON para um array
-    const respostasAtividades = JSON.parse(respostasAtividadesString) || [];
-
-    // Encontre a resposta no array
-    const resposta = respostasAtividades.find(resposta => resposta?.idAtividade === idAtividade);
-
-    if (resposta) {
-        // Retorna a mensagem associada à idAtividade
-        console.log('resposta.mensagem', resposta.mensagem);
-        return resposta.mensagem;
-    } else {
-        // Se não encontrar a resposta, retorna null ou uma mensagem padrão, conforme necessário
-        return null;
-    }
-};
-
 const excluirAtividade = async() => {
-    if (confirm("Tem certeza que deseja excluir esta atividade?")) {
         const db = getFirestore();
         const toast = useToast();
 
         try {
 
             const idAtividadeFirestore = await getCodigoUnicoAtividade();
-            // Substitua 'atividades' pelo nome da sua coleção no Firestore
+
             const docRef = doc(db, 'atividades', idAtividadeFirestore);
             await deleteDoc(docRef);
 
@@ -661,13 +608,8 @@ const excluirAtividade = async() => {
             console.error('Erro ao excluir a atividade:', error);
             alert('Erro ao excluir a atividade. Por favor, tente novamente.');
         }
-    }
 };
 
-
-// const monstrarMural = () => {
-//     mostrarMuralFlag.value = false;
-// };
 
 const mostrarPessoas = () => {
     carregarPessoasNaSala();
@@ -700,14 +642,13 @@ const cancelarPostagem = () => {
 }
 
 const voltar = () => {
-    // Implemente a lógica de voltar para a página anterior
-    // router.go(-1);
     window.history.go(-1);
+
 };
 
 const abrirAtividade = (atividade) => {
-
     atividade.atividadeAberta = true;
+
 }
 
 const fecharAtividade = (atividade) => {
@@ -721,7 +662,7 @@ onMounted(async () => {
         sala.value = await buscarSalaPeloCodigo(codigoSala);
         console.log('sala: ', sala.value);
 
-        // aki ele vai montar na hora que ele entrar no compomente, e carrega-lo
+        // montar na hora que ele entrar no compomente, e carrega
         carregarAtividades();
 
         const idAtividadeFirestore = await getCodigoUnicoAtividade();
@@ -738,29 +679,16 @@ onMounted(async () => {
             respostaCorreta.value = resposta.correta;
             mensagemResultado.value = resposta.mensagem;
             atividadeRespondida.value = resposta.respondida;
-            atividadeRespondida.value = true;
-            // mostrarMensagem.value = true;
+            mostrarMensagem.value = true;
         } else {
-            atividadeRespondida.value = true;
-            // mostrarMensagem.value = false;
+            mostrarMensagem.value = false;
         }
 
 
     } catch (error) {
         console.error('Erro ao buscar a sala:', error);
-        // Lide com o erro, por exemplo, redirecione o usuário para uma página de erro.
     }
-
-
-    // return {
-    //     idAtividadeRealtimeGlobal,
-    //     respostaCorreta,
-    //     mensagemResultado,
-    //     atividadeRespondida,
-    //     // ... outras variáveis e métodos que você precisar retornar ...
-    // };
 });
-
 
 </script>
 
@@ -773,7 +701,6 @@ onMounted(async () => {
     border-radius: 5px;
     color: #fff;
     position: relative;
-    /* Adicionado */
 }
 
 .header {
@@ -834,12 +761,10 @@ onMounted(async () => {
 .professor {
     font-size: 18px;
     margin-top: 15px;
-    /* Aumenta a margem superior para separar do conteúdo anterior */
     color: #000;
 }
 
 .professor::after {
-    /* Adicionado para separar */
     content: "";
     display: block;
     width: 100%;
@@ -850,14 +775,11 @@ onMounted(async () => {
 
 .create-activity-button {
     background: #555;
-    /* Cinza */
     color: #fff;
-    /* Branco */
     border: none;
     padding: 2px 8px;
     border-radius: 4px;
     margin-left: 8px;
-    /* Espaçamento à direita do texto "Professor" */
     margin-bottom: 8px;
     cursor: pointer;
 
@@ -865,9 +787,7 @@ onMounted(async () => {
 
 .postar-atividade-button {
     background: #5fb013;
-    /* Cinza */
     color: #fff;
-    /* Branco */
     border: none;
     padding: 4px 14px;
     border-radius: 5px;
@@ -877,9 +797,7 @@ onMounted(async () => {
 
 .cancelar-atividade-button {
     background: #f02424;
-    /* Cinza */
     color: #fff;
-    /* Branco */
     border: none;
     padding: 4px 14px;
     border-radius: 5px;
@@ -898,9 +816,7 @@ onMounted(async () => {
 
 .enviar-atividade-button {
     background: #5fb013;
-    /* Cinza */
     color: #fff;
-    /* Branco */
     border: none;
     padding: 4px 14px;
     border-radius: 5px;
@@ -924,17 +840,13 @@ onMounted(async () => {
 
 .fixed-textarea {
     height: 150px;
-    /* Defina a altura desejada em pixels */
     resize: none;
-    /* Impede o redimensionamento do usuário */
     margin-bottom: 10px;
 }
 
 .fixed-textarea-resposta {
     height: 150px;
-    /* Defina a altura desejada em pixels */
     resize: none;
-    /* Impede o redimensionamento do usuário */
     margin-bottom: 10px;
     margin-top: 10px;
 }
@@ -942,16 +854,13 @@ onMounted(async () => {
 .fixed-textarea-titulo {
     height: 40px;
     resize: none;
-    /* Impede o redimensionamento do usuário */
     margin-bottom: 10px;
     margin-top: 8px;
 }
 
 .fixed-textarea-codigo {
     height: 150px;
-    /* Defina a altura desejada em pixels */
     resize: none;
-    /* Impede o redimensionamento do usuário */
 }
 
 .container1 {
@@ -960,7 +869,6 @@ onMounted(async () => {
     border: 1px solid #ccc;
     border-radius: 5px;
     position: relative;
-    /* Adicionado */
 }
 
 .container1 h1 {
@@ -969,7 +877,6 @@ onMounted(async () => {
 }
 
 .close-button {
-    /* Adicionado para o botão fechar */
     position: absolute;
     top: 10px;
     right: 10px;
@@ -997,8 +904,6 @@ ul {
 
 li.professor,
 li.aluno {
-    /* background-color: #f4f4f4; */
-    /* Fundo cinza claro para professor e alunos */
     padding: 5px;
     margin-bottom: 5px;
     border-radius: 5px;
@@ -1015,7 +920,6 @@ li.professor {
 li.aluno {
     margin-left: 20px;
 }
-
 
 .atividade-container {
     background-color: #f0f0f0;
@@ -1093,4 +997,3 @@ li.aluno {
     margin-right: 3px;
 }
 </style>
-

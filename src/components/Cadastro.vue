@@ -114,8 +114,6 @@ export default {
     }
   },
 
-  // ver sobre o formulario nao esta dando certo
-  // tem q verificar e dps enviar o formulario
   methods: {
     async cadastrar() {
       if (!this.v$.$invalid) {
@@ -129,7 +127,6 @@ export default {
 
           const auth = getAuth();
           const { user: authUser } = await createUserWithEmailAndPassword(auth, user.mail, user.pass);
-          // signInWithCredential
           const db = getFirestore();
           const usersCollection = collection(db, 'users');
           const userDocRef = doc(usersCollection, authUser.uid);
@@ -165,7 +162,6 @@ export default {
 
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .error0 {
   border: 2px solid red;
@@ -178,9 +174,7 @@ export default {
 }
 
 .register-container {
-  /* margin-top: 5%; */
   margin-bottom: 5%;
-  /* margin-left: 28%;   */
 }
 
 .register-form-1 {

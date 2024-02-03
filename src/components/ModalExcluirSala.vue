@@ -51,17 +51,13 @@ export default {
 <style scoped>
 .modal {
     display: block;
-    /* Mostra o modal */
     position: fixed;
-    /* Mantém o modal na tela */
     z-index: 1;
-    /* Define a ordem de empilhamento */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
-    /* Define um fundo semitransparente */
 }
 
 .modal-content {
@@ -105,4 +101,3 @@ export default {
     background-color: #7e0f0f;
 }
 </style>
-  

@@ -18,7 +18,6 @@ if (currentUserEmail) {
 
 const firebaseApp  = initializeApp(firebaseConfig);
 
-// createApp(App).use(router).use(store).use(Toast).mount('#app')
 const app = createApp(App)
 app.use(router)
 app.use(store)

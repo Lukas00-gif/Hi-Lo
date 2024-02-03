@@ -1,5 +1,4 @@
 <template>
-    <!-- <button @click="logout">Logout</button> -->
     <ul>
         <li><a @click="logout">Sair</a></li>
     </ul>
@@ -32,7 +31,6 @@ export default {
 
             } catch (error) {
                 console.error('Erro durante o logout:', error);
-                // Tratar o erro, se necessário
             }
         }
     },

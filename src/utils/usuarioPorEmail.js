@@ -19,7 +19,7 @@ export async function buscarDetalhesDoUsuarioPorEmail(email) {
         }
     } catch (error) {
         console.error('Erro ao buscar detalhes do usuário por email:', error);
-        return null; // Lidar com o erro, por exemplo, retornar null ou lançar uma exceção
+        return null;
     }
 }
 

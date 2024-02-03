@@ -6,39 +6,30 @@
             <form @submit.prevent="salvarEdicao">
                 <div class="form-group">
                     <label for="nomeMateria">Editar o Nome da Matéria:</label>
-                    <input type="text" v-model="salaEditada.nomeMateria" 
-                        id="nomeMateria" @input="updateChanges"
-                    >
+                    <input type="text" v-model="salaEditada.nomeMateria" id="nomeMateria" @input="updateChanges">
                 </div>
 
                 <div class="form-group">
                     <label for="nomeProfessor">Editar o Nome do Professor:</label>
-                    <input type="text" v-model="salaEditada.nomeProfessor" 
-                        id="nomeProfessor" @input="updateChanges"
-                    >
+                    <input type="text" v-model="salaEditada.nomeProfessor" id="nomeProfessor" @input="updateChanges">
                 </div>
 
                 <div class="form-group">
                     <label for="nomeCurso">Editar o Nome do Curso:</label>
-                    <input type="text" v-model="salaEditada.nomeCurso" 
-                        id="nomeCurso" @input="updateChanges"
-                    >
+                    <input type="text" v-model="salaEditada.nomeCurso" id="nomeCurso" @input="updateChanges">
                 </div>
 
                 <div class="form-group">
                     <label for="nomeCurso">Editar o Email do Professor</label>
-                    <input type="text" v-model="salaEditada.emailProfessorSala" 
-                        id="nomeCurso" @input="updateChanges"
-                    >
+                    <input type="text" v-model="salaEditada.emailProfessorSala" id="nomeCurso" @input="updateChanges">
                 </div>
 
                 <div v-if="ErrorMessage" class="errorMessage">Todos os Campos não podem ser Brancos</div>
 
-                <button type="submit" class="btn-salvar" :class="{ 'btn-disabled': !hasChanges, 'btn-salvar-hover': hasChanges }"
-                    :disabled="!hasChanges"
-                    >
-                        <i class="fa-regular fa-circle-check"></i>
-                        Salvar Alterações
+                <button type="submit" class="btn-salvar"
+                    :class="{ 'btn-disabled': !hasChanges, 'btn-salvar-hover': hasChanges }" :disabled="!hasChanges">
+                    <i class="fa-regular fa-circle-check"></i>
+                    Salvar Alterações
                 </button>
                 <button class="btn-cancelar" @click="fecharModal">
                     <i class="fa-regular fa-circle-xmark"></i>
@@ -114,9 +105,11 @@ export default {
                     this.$emit('sala-editada', this.salaEditada);
                     this.fecharModal();
                 } catch (error) {
-                    console.log('error ', error)
-                    // depois ve a modificaçao disso
-                    alert('erro ao salvar as alteraçoes, tente novamente')
+                    console.log('error ', error);
+                    toast.error("Erro ao Aalvar as Alteraçoes, Tente Novamente", {
+                        position: "bottom-right",
+                        timeout: 3000,
+                    });
                 }
             } else {
                 this.v$.$touch();
@@ -140,20 +133,15 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos do modal */
 .modal {
     display: block;
-    /* Mostra o modal */
     position: fixed;
-    /* Mantém o modal na tela */
     z-index: 1;
-    /* Define a ordem de empilhamento */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
-    /* Define um fundo semitransparente */
 }
 
 .modal-content {
@@ -219,10 +207,6 @@ input[type="text"] {
     margin-right: 20px;
 }
 
-/* .btn-salvar:hover {
-    background-color: #035104;
-} */
-
 .btn-disabled {
     background-color: #cccccc;
     cursor: not-allowed;
@@ -253,4 +237,3 @@ input[type="text"] {
     /* margin-bottom: 10px; */
 }
 </style>
-  

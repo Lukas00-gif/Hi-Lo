@@ -14,11 +14,8 @@ const toast = useToast();
 
 const authGuard = (to, from, next) => {
   const currentUserEmail = store.getters.currentUserEmail
-  console.log("current do AUTHGUARD; ", currentUserEmail)
-
   if (currentUserEmail) {
     // Usuário autenticado, permite o acesso à rota
-    console.log('dentro do AUTHGUARD')
     next();
   } else { 
     // Usuário não autenticado, redireciona para a página de login

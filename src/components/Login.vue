@@ -105,10 +105,6 @@ export default {
 
   methods: {
     async enviar() {
-      // testegrande@gmail.com  123456
-      // antonio@professor.com 123456
-      // roberto12@gmail.com 123456
-
       if (!this.v$.$invalid) {
 
         const auth = getAuth();
@@ -127,7 +123,6 @@ export default {
           const usersCollection = collection(db, 'users');
           const q = query(usersCollection, where('email', '==', mail));
           const querySnapshot = await getDocs(q);
-          // store.dispatch('login', {email: user.email, password: user.password});
 
           // Verifica se o documento do usuário existe e tem a senha correspondente
           const userDoc = querySnapshot.docs[0];
@@ -169,20 +164,16 @@ export default {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .login-image {
   width: 90%;
-  /* Ajuste conforme necessário */
   height: auto;
-  /* Para manter a proporção da imagem */
   margin-top: 5%;
 }
 
 .error-message {
   color: red;
   font-size: 10px;
-  /* margin-bottom: 10px; */
 }
 
 .login-form-1 {
@@ -239,7 +230,6 @@ export default {
   background-color: #fcfcfc;
   text-decoration: none;
 }
-
 
 .error0 {
   border: 2px solid red;

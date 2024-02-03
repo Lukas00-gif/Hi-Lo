@@ -34,7 +34,7 @@
         </div>
 
         <footer>
-            <p>&copy; 2023 | Code Class</p>
+            <p>&copy; 2024 | Code Class</p>
         </footer>
     </div>
 </template>
@@ -48,7 +48,6 @@ import {
     query,
     where,
     updateDoc,
-    arrayRemove,
     doc
 } from 'firebase/firestore';
 import { useToast } from 'vue-toastification';
@@ -59,8 +58,6 @@ import Logout from '../components/Logout.vue'
 const toast = useToast();
 
 export default {
-
-
     name: 'NavBar',
 
     components: { Logout },
@@ -94,12 +91,10 @@ export default {
 
                 // pega os dados do usuario para deixar no perfil
                 state.perfil.email = alunoDoc.data().email,
-                    state.perfil.fistName = alunoDoc.data().fistName,
-                    state.perfil.lastName = alunoDoc.data().lastName
+                state.perfil.fistName = alunoDoc.data().fistName,
+                state.perfil.lastName = alunoDoc.data().lastName
 
                 state.userID = alunoDoc.id;
-
-                console.log('perfil apos busca', state.perfil)
             };
 
         });
@@ -146,7 +141,7 @@ export default {
 
                     toast.success('O Perfil foi Atualizado',{
                     position: "bottom-right",
-                    timeout: 2000,
+                    timeout: 3000,
                 });
 
                 location.reload();
@@ -175,7 +170,6 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* background-color: #434141; */
     background-color: #817f80;
     color: #070707;
     padding: 1rem;
@@ -216,7 +210,6 @@ span {
     display: flex;
     align-items: center;
     margin-right: 10px;
-    /* Ajuste conforme necessário */
 }
 
 .logo img {
@@ -247,7 +240,6 @@ input {
     padding: 8px;
     box-sizing: border-box;
     margin-bottom: 10px;
-    /* Adiciona um espaçamento inferior nos campos de entrada */
 }
 
 button {
@@ -264,7 +256,6 @@ button:hover {
 }
 
 footer {
-    /* background-color: #434141; */
     background-color: #817f80;
     color: #000000;
     display: flex;

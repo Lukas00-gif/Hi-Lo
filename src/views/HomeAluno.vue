@@ -4,7 +4,6 @@
             <div class="logo">
                 <img src="../img/logo.png" alt="Code Class Logo" />
             </div>
-            <!-- <h3>Code Class</h3> -->
             <ul>
                 <li><a href="/perfil">Perfil</a></li>
                 <li><a @click="abrirModalAddAlunoSala">Adicionar Codigo</a></li>
@@ -13,13 +12,11 @@
             <span>Bem-vindo(a) {{ aluno.nome }} {{ aluno.sobrenome }} </span>
         </nav>
 
-        <!-- <ModalAddAlunoSala v-if="mostrarModalAddAlunoSala" @fechar="fecharModalAddAlunoSala" /> -->
         <ModalAddAlunoSala v-if="mostrarModalAddAlunoSala" @fechar="fecharModalAddAlunoSala"
             @sala-encontrada="exibirSala" />
 
         <ModalExcluirSalaAluno v-if="mostrarModalExcluirSalaAluno" :sala="salaSelecionada" @sair-da-sala="sairDaSala"
             @cancelar-saida="cancelarSaida" />
-
 
         <div class="container">
             <div class="card-deck" v-if="salasCarregadas">
@@ -99,7 +96,6 @@ export default {
     setup() {
         const state = reactive({
             salasFiltradas: [],
-            // salasCarregadas: [], original
             salasCarregadas: false,
             aluno: {
                 nome: '',
@@ -243,7 +239,6 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* background-color: #434141; */
     background-color: #817f80;
     color: #070707;
     padding: 1rem;
@@ -300,7 +295,6 @@ span {
 
 
 footer {
-    /* background-color: #434141; */
     background-color: #817f80;
     color: #000000;
     display: flex;
@@ -399,8 +393,6 @@ footer {
     }
 
 }
-
-/* Acima de 1201px -- OK */
 </style>
 
 

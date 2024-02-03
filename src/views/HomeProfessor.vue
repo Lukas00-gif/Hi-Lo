@@ -4,8 +4,6 @@
             <div class="logo">
                 <img src="../img/logo.png" alt="Code Class Logo" />
             </div>
-
-            <!-- <h3>Code Class</h3> -->
             <div class="centered-items">
                 <ul>
                     <li><a href="/perfil">Perfil</a></li>
@@ -85,7 +83,6 @@ import {
     collection,
     getDocs,
     getDoc,
-    deleteDoc,
     updateDoc,
     doc,
     query,
@@ -122,39 +119,6 @@ export default {
             this.mostrarModal = false
         },
 
-        // os metodos do Modal excluir
-        // alterarStatusSala(sala) {
-        //     this.salaExcluida = sala;
-        //     this.modalExcluirVisivel = true;
-        // },
-        // excluirSala(salaExcluida) {
-        //     // Aqui você pode remover a sala excluída do Firebase
-        //     // e também do array de salas localmente
-        //     const db = getFirestore();
-
-        //     try {
-        //         const docRef = doc(db, 'salas', salaExcluida.codigo);
-        //         deleteDoc(docRef);
-
-        //         const index = this.salas.findIndex(sala => sala.codigo === salaExcluida.codigo);
-        //         if (index !== -1) {
-        //             this.salas.splice(index, 1);
-        //         }
-
-        //         // Emitir evento para informar que a sala foi excluída
-        //         this.$emit('sala-excluida', salaExcluida);
-        //     } catch (error) {
-        //         console.error('Erro ao excluir a sala:', error);
-        //         alert('Erro ao excluir a sala. Por favor, tente novamente.');
-        //     }
-
-        //     this.fecharModalExcluir();
-        // },
-        // fecharModalExcluir() {
-        //     this.modalExcluirVisivel = false;
-        //     this.salaExcluida = null;
-        // },
-
         alterarStatusSala(sala) {
             const db = getFirestore();
             const salaRef = doc(db, 'salas', sala.codigo);
@@ -180,7 +144,7 @@ export default {
             const toast = useToast();
             toast.success('Sala ativada com sucesso.', {
                 position: 'bottom-right',
-                timeout: 3000, // Tempo de exibição do Toast em milissegundos
+                timeout: 3000,
             });
         },
 
@@ -188,7 +152,7 @@ export default {
             const toast = useToast();
             toast.warning('Sala desativada com sucesso.', {
                 position: 'bottom-right',
-                timeout: 3000, // Tempo de exibição do Toast em milissegundos
+                timeout: 3000, 
             });
         },
 
@@ -198,8 +162,6 @@ export default {
             this.mostrarModalEditarSala = true;
         },
         async salaEditada(salaEditada) {
-            // Aqui você pode implementar a lógica para salvar a sala editada no banco de dados (usando o Firebase)
-            // Exemplo: this.state.salas[index] = salaEditada;
             const db = getFirestore()
             try {
                 // cria uma referencia do codigo
@@ -254,28 +216,17 @@ export default {
         // contado
         onMounted(async () => {
             try {
-                // consulta atravez do getDocs, com o nome da coleção de salas
-                // e vai retornar um objeto querysnashot
-                // const querySnapshot = await getDocs(collection(db, 'salas'));
-                // // pega o objeto e itera dentro da sala no caso que e as salas do obj state
-                // querySnapshot.forEach((doc) => {
-                //     state.salas.push(doc.data());
-                // });
-                // state.salasCarregadas = true;
-
                 const professorSnapshot = await getDocs(query(collection(db, 'salas'), where('emailProfessorSala', '==', currentUserEmail)));
                 professorSnapshot.forEach(async (doc) => {
                     state.salas.push(doc.data());
 
                     const salaData = doc.data();
                     const salaRef = variableDoc(db, 'salas', salaData.codigo);
-                    // const salaDoc = await getDocs(salaRef);
                     const salaDoc = await getDoc(salaRef);
 
                     if (salaDoc.exists()) {
                         salaData.ativada = salaDoc.data().ativada;
                     }
-                    // state.salas.push(salaData); 
                 });
                 state.salasCarregadas = true;
 
@@ -286,8 +237,6 @@ export default {
                     state.professor.nome = professorDoc.data().fistName;
                     state.professor.sobrenome = professorDoc.data().lastName;
                 }
-
-                // caso aconteça algum erro vai dar erro
             } catch (error) {
                 console.error('Erro ao recuperar salas:', error);
                 state.salasCarregadas = true;
@@ -349,14 +298,12 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* background-color: #434141; */
     background-color: #817f80;
     color: #000000;
     padding: 1rem;
 }
 
 .navbar h3 {
-    /* margin: 0; */
     font-size: 1.5rem;
     margin-left: 1%;
 }
@@ -376,7 +323,6 @@ h3 {
     display: flex;
     list-style: none;
     margin: 0;
-    /* margin-right: 50px; */
     padding: 0;
 }
 
@@ -394,8 +340,6 @@ span {
     margin-right: 2%;
     padding: 5px;
 }
-
-/* Estilos para o toggle switch */
 .toggle-switch {
     position: relative;
     display: inline-block;
@@ -415,7 +359,6 @@ span {
     right: 0;
     bottom: 0;
     background-color: #ccc;
-    /* Cor de fundo quando desativado */
     transition: 0.4s;
     border-radius: 34px;
 }
@@ -435,19 +378,16 @@ span {
 /* Estilo do toggle switch quando ativado */
 .toggle-input:checked+.slider {
     background-color: #4CAF50;
-    /* Cor de fundo quando ativado (verde) */
 }
 
 .toggle-input:checked+.slider:before {
     transform: translateX(26px);
-    /* Posição quando ativado */
 }
 
 .logo {
     display: flex;
     align-items: center;
     margin-right: 10px;
-    /* Ajuste conforme necessário */
 }
 
 .logo img {
@@ -459,7 +399,6 @@ span {
 }
 
 footer {
-    /* background-color: #434141; */
     background-color: #817f80;
     color: #000000;
     display: flex;
@@ -499,13 +438,11 @@ footer {
 
     .card {
         width: 100%;
-        /* Ajuste conforme necessário */
 
     }
 
     .container {
         margin-top: 20px;
-        /* Ajuste conforme necessário */
     }
 
     .btn-editar,

@@ -4,7 +4,6 @@ import { getAuth, signInWithEmailAndPassword, signOut, setPersistence, browserSe
 export default createStore({
     state: {
         currentUserEmail: null,
-        // atividades: {},
         mensagemResposta: '',
     },
     mutations: {
@@ -22,25 +21,6 @@ export default createStore({
         setMensagemResposta(state, mensagem) {
             state.mensagemResposta = mensagem
         }
-
-        // adicionarAtividade(state, { idAtividade, respondida, correta, mensagem }) {
-        //     state.atividades = {
-        //         ...state.atividades,
-        //         [idAtividade]: { respondida, correta, mensagem }
-        //     };
-        //     // atualiza os dados novos vindo anteriomente
-        //     localStorage.setItem('atividades', JSON.stringify(state.atividades))
-        //     console.log('Atividades adicionadas ao localStorage:', state.atividades);
-        // },
-        
-        // setAtividade(state, { idAtividade, respondida, correta, mensagem }) {
-        //     state.atividades = {
-        //         ...state.atividades,
-        //         [String(idAtividade)]: { respondida, correta, mensagem }
-        //     };
-        //     localStorage.setItem('atividades', JSON.stringify(state.atividades));
-        //     console.log('LocalStorage atualizado:', state.atividades);
-        // },
 
     },
     actions: {
@@ -72,11 +52,6 @@ export default createStore({
                 throw error;
             }
         },
-
-        // async marcarAtividadeRespondida({ commit }, { idAtividade, respondida, correta, mensagem }) {
-        //     // recebe os dados e manda para o setAtividade
-        //     commit('setAtividade', { idAtividade, respondida, correta, mensagem });
-        // },
     },
     getters: {
         currentUserEmail: state => state.currentUserEmail,
