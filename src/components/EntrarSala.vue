@@ -38,7 +38,7 @@
                 <div class="atividade-saida" v-html="atividade.saidaEsperadaProfessor"></div>
 
                 <!-- Adiciona a classe 'atividade-aberta' se atividadeAberta for true -->
-                <button class="responder-button" @click="abrirAtividade(atividade)" v-show="!atividade.atividadeAberta">
+                <button v-if="isUserAluno()" class="responder-button" @click="abrirAtividade(atividade)" v-show="!atividade.atividadeAberta">
                     <i class="fa-solid fa-book-open book-icon"></i>
                     Abrir Atividade
                 </button>
@@ -48,7 +48,7 @@
                     Excluir Atividade
                 </button>
 
-                original <div v-if="mostrarMensagem" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
+                <div v-if="mostrarMensagem" :class="{ 'acertou': respostaCorreta, 'errou': !respostaCorreta }">
                     {{ mensagemResultado }}
                 </div>
 
@@ -626,6 +626,10 @@ const isUserProfessor = () => {
     // Verifica se o currentUserEmail contém a palavra "professor"
     return currentUserEmail.includes('professor');
 };
+
+const isUserAluno = () => {
+    return currentUserEmail.includes('gmail');
+}
 
 const mostrarFormulario = () => {
     mostrarFormularioFlag.value = true;
